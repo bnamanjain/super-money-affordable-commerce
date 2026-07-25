@@ -1,0 +1,10 @@
+**/node_modules/
+prototype/dist/
+prototype/.vinext/
+prototype/.next/
+prototype/public/buyer.html
+prototype/public/index.html
+prototype/public/seller.html
+prototype/public/prototype-assets/
+.DS_Store
+*.log

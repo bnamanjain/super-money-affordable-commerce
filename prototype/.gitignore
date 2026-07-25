@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+.vinext/
+test-artifacts/
+source-artwork/unused-crops/
+public/buyer.html
+public/index.html
+public/seller.html
+public/prototype-assets/
+next-env.d.ts
+.DS_Store
+*.log
