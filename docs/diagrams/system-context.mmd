@@ -1,0 +1,26 @@
+flowchart LR
+  buyer["Buyer<br/>super.money mobile app"]
+  sellerUser["Seller operator<br/>web portal"]
+  merchant["External merchant<br/>site, app, OMS"]
+  support["Support and risk teams"]
+
+  platform["super.money Affordable Commerce<br/>discovery, affordability, checkout,<br/>order linking and reconciliation"]
+
+  lender["Regulated lender (RE)<br/>credit decision, KFS,<br/>loan and legal ledger"]
+  upi["UPI / PSP / issuer bank<br/>payment authorization and status"]
+  sellerOms["Seller OMS / marketplace<br/>inventory, order and fulfilment"]
+  logistics["Logistics provider<br/>shipment and delivery events"]
+  identity["KYC, bureau and<br/>approved data providers"]
+  comms["SMS, email and push<br/>delivery providers"]
+
+  buyer -->|browse, consent, pay, repay| platform
+  sellerUser -->|catalogue, offers, fulfilment| platform
+  merchant <-->|partner APIs and webhooks| platform
+  support -->|cases and controlled actions| platform
+
+  platform <-->|eligibility, KFS, booking, status| lender
+  platform <-->|UPI intent, collect, mandate, status| upi
+  platform <-->|stock, order, return, payout data| sellerOms
+  platform <-->|tracking events| logistics
+  platform <-->|verified signals with consent| identity
+  platform -->|transactional messages| comms

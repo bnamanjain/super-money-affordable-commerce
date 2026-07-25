@@ -1,0 +1,66 @@
+flowchart TB
+  user["Mobile and browser clients"]
+
+  subgraph edge["Public edge"]
+    cdn["CDN"]
+    waf["WAF / DDoS protection"]
+    api["Regional API Gateway"]
+  end
+
+  subgraph indiaRegion["India primary region"]
+    subgraph azA["Availability zone A"]
+      appA["Stateless service replicas"]
+      workerA["Event workers"]
+    end
+    subgraph azB["Availability zone B"]
+      appB["Stateless service replicas"]
+      workerB["Event workers"]
+    end
+    lb["Internal load balancer / service discovery"]
+    kafka["Multi-zone event bus"]
+    db["Managed PostgreSQL<br/>primary + synchronous standby"]
+    redis["Redis cluster"]
+    search["OpenSearch cluster"]
+    object["Encrypted object storage"]
+    observability["Metrics, logs and traces"]
+    kms["KMS / secrets manager"]
+  end
+
+  subgraph dr["India disaster-recovery region"]
+    drApp["Warm service capacity"]
+    drData["Cross-region backups / replicas"]
+  end
+
+  subgraph partners["Partner networks"]
+    lender["Lender private API"]
+    upi["PSP / UPI"]
+    merchant["Merchant / logistics"]
+  end
+
+  user --> cdn --> waf --> api --> lb
+  lb --> appA
+  lb --> appB
+  appA --> db
+  appB --> db
+  appA --> redis
+  appB --> redis
+  appA --> search
+  appB --> search
+  appA --> object
+  appB --> object
+  appA --> kafka
+  appB --> kafka
+  kafka --> workerA
+  kafka --> workerB
+  appA --> observability
+  appB --> observability
+  workerA --> observability
+  workerB --> observability
+  kms --> appA
+  kms --> appB
+  db -. backup / replication .-> drData
+  object -. replicated copy .-> drData
+  api -. failover .-> drApp
+  appA <-->|mTLS / allowlisted egress| lender
+  appB <-->|mTLS / allowlisted egress| upi
+  workerA <-->|signed webhooks| merchant

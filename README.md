@@ -32,14 +32,18 @@ or an underwriting stack built from scratch.
 - Seller web portal:
   <https://super-money-affordable-commerce.naman884186.chatgpt.site/seller>
 
-The deployed prototype is currently owner-only. Leadership viewers must be added
-before the links are shared externally.
+The deployed prototype is public, requires no sign-in, and contains fictional
+demonstration data. Leadership viewers can open either link directly.
 
 ## Project Contents
 
 - [Full product blueprint](docs/product-blueprint.md): strategy, personas,
   journeys, lending design, P&L, metrics, architecture, schemas, APIs, roadmap,
   experiments, risks, and leadership email.
+- [Technical system-design deep dive](docs/system-design-deep-dive.md):
+  beginner-friendly, production-depth coverage of all 25 services, service
+  dependencies, API architecture, workflows, events, data schemas, security,
+  deployment, reliability, testing, and the current prototype code.
 - [Leadership application pitch](docs/application-pitch.md): focused proposal,
   business case, decisions, and presentation narrative.
 - [Prototype walkthrough](docs/prototype-walkthrough.md): screen-by-screen scope

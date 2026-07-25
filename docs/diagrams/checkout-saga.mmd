@@ -1,0 +1,32 @@
+sequenceDiagram
+  autonumber
+  actor Buyer
+  participant BFF as Consumer BFF
+  participant CO as Checkout Orchestrator
+  participant AE as Affordability Engine
+  participant CD as Consent and Document
+  participant RF as Risk and Fraud
+  participant LA as Lender Adapter
+  participant PO as Payment Orchestrator
+  participant OB as Order Bridge
+  participant EV as Event Bus
+
+  Buyer->>BFF: Confirm selected plan
+  BFF->>CO: POST /checkout-sessions/{id}/confirm
+  CO->>AE: Revalidate immutable quote
+  AE-->>CO: Quote valid until timestamp
+  CO->>CD: Verify KFS version and consent proof
+  CD-->>CO: Consent accepted
+  CO->>RF: Final velocity and device check
+  RF-->>CO: Allow
+  CO->>LA: Reserve / book credit
+  LA-->>CO: Lender reference confirmed
+  CO->>PO: Collect amount due now or authorize UPI rail
+  PO-->>CO: Payment confirmed
+  CO->>OB: Place idempotent seller order
+  OB-->>CO: Order accepted
+  CO->>EV: CheckoutCompleted event
+  CO-->>BFF: Order, credit and repayment references
+  BFF-->>Buyer: Success and unified timeline
+
+  Note over CO,OB: Every command has an idempotency key.<br/>Retries return the first result instead of charging twice.

@@ -1,0 +1,51 @@
+flowchart LR
+  subgraph clients["API consumers"]
+    app["Mobile app"]
+    web["Seller portal"]
+    merchantCaller["Merchant API caller"]
+    admin["Internal console"]
+  end
+
+  subgraph publicEdge["Public edge"]
+    dns["DNS / CDN"]
+    waf["WAF and bot control"]
+    gateway["API Gateway<br/>TLS, auth, quotas, routing"]
+  end
+
+  subgraph adapters["Client-specific adapters"]
+    consumerBff["Consumer BFF<br/>REST / JSON"]
+    sellerBff["Seller BFF<br/>REST / JSON"]
+    partnerApi["Partner API<br/>REST / JSON + mTLS"]
+    webhookIn["Webhook ingress<br/>HMAC verification"]
+  end
+
+  subgraph domain["Private domain network"]
+    services["Domain services<br/>gRPC or private HTTP"]
+    bus["Event bus<br/>versioned events"]
+    outbox["Transactional outbox"]
+    webhookOut["Webhook delivery worker"]
+  end
+
+  merchantCallback["Merchant webhook endpoint"]
+
+  app --> dns
+  web --> dns
+  merchantCaller --> dns
+  admin --> dns
+  dns --> waf --> gateway
+
+  gateway --> consumerBff
+  gateway --> sellerBff
+  gateway --> partnerApi
+  gateway --> webhookIn
+
+  consumerBff -->|synchronous query or command| services
+  sellerBff -->|synchronous query or command| services
+  partnerApi -->|synchronous query or command| services
+  webhookIn -->|validated command| services
+
+  services -->|write domain state| outbox
+  outbox -->|publish after commit| bus
+  bus -->|asynchronous subscribers| services
+  bus --> webhookOut
+  webhookOut -->|signed webhook + retry| merchantCallback

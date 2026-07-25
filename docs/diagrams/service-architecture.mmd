@@ -1,0 +1,119 @@
+flowchart TB
+  subgraph experience["Experience layer"]
+    mobile["Consumer mobile app"]
+    portal["Seller portal"]
+    sdk["Merchant checkout SDK"]
+    console["Support console"]
+  end
+
+  subgraph edge["API edge"]
+    waf["CDN, WAF and rate limits"]
+    gateway["API Gateway"]
+    cbff["Consumer BFF"]
+    sbff["Seller / Partner BFF"]
+  end
+
+  subgraph identity["Identity and intelligence"]
+    profile["Identity and User Profile"]
+    consent["Consent and Document"]
+    signals["Transaction Intelligence"]
+  end
+
+  subgraph commerce["Commerce domain"]
+    seller["Seller Service"]
+    catalogue["Catalogue Service"]
+    search["Search and Discovery"]
+    offer["Offer and Affordability Engine"]
+    experiment["Experimentation Service"]
+  end
+
+  subgraph credit["Credit and risk domain"]
+    eligibility["Credit Eligibility"]
+    risk["Risk and Fraud"]
+    lender["Lender Adapter Layer"]
+  end
+
+  subgraph transaction["Transaction domain"]
+    checkout["Checkout Orchestrator"]
+    payment["Payment Orchestrator"]
+    order["Order Bridge"]
+    repayment["Repayment Ledger"]
+    refund["Refund Reconciliation"]
+    settlement["Seller Settlement"]
+  end
+
+  subgraph platform["Shared platform"]
+    events["Event Bus and Outbox"]
+    notify["Notification Service"]
+    cases["Support / Case Service"]
+    audit["Audit and Compliance Store"]
+    analytics["Analytics Pipeline"]
+  end
+
+  subgraph external["External systems"]
+    re["Lender RE / LMS"]
+    upi["UPI, PSP and banks"]
+    oms["Seller OMS / logistics"]
+    providers["KYC, bureau, messaging"]
+  end
+
+  mobile --> waf
+  portal --> waf
+  sdk --> waf
+  console --> waf
+  waf --> gateway
+  gateway --> cbff
+  gateway --> sbff
+
+  cbff --> profile
+  cbff --> search
+  cbff --> offer
+  cbff --> checkout
+  cbff --> repayment
+  sbff --> seller
+  sbff --> catalogue
+  sbff --> settlement
+  sbff --> order
+
+  search --> catalogue
+  search --> offer
+  offer --> eligibility
+  offer --> risk
+  offer --> experiment
+  eligibility --> profile
+  eligibility --> signals
+  eligibility --> lender
+
+  checkout --> consent
+  checkout --> offer
+  checkout --> risk
+  checkout --> lender
+  checkout --> payment
+  checkout --> order
+  refund --> lender
+  refund --> payment
+  refund --> order
+  refund --> repayment
+  refund --> settlement
+
+  lender <--> re
+  payment <--> upi
+  order <--> oms
+  profile <--> providers
+  signals <--> providers
+  notify --> providers
+
+  profile --> events
+  seller --> events
+  catalogue --> events
+  checkout --> events
+  payment --> events
+  order --> events
+  lender --> events
+  repayment --> events
+  refund --> events
+  settlement --> events
+  events --> notify
+  events --> cases
+  events --> audit
+  events --> analytics

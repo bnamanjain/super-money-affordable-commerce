@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  actor Seller
+  participant API as Seller / Partner API
+  participant RR as Refund Reconciliation
+  participant OB as Order Bridge
+  participant LA as Lender Adapter
+  participant RL as Repayment Ledger
+  participant PO as Payment Orchestrator
+  participant SS as Seller Settlement
+  participant EV as Event Bus
+
+  Seller->>API: Request full or partial refund
+  API->>RR: Create refund with idempotency key
+  RR->>OB: Validate delivered quantity and return state
+  OB-->>RR: Refundable amount and seller reference
+  RR->>LA: Request principal / schedule adjustment
+  LA-->>RR: Lender adjustment reference
+  RR->>RL: Refresh repayment projection
+  alt Excess remains after lender adjustment
+    RR->>PO: Refund excess to buyer payment source
+    PO-->>RR: Payment refund reference
+  end
+  RR->>SS: Post seller reversal and fee adjustments
+  SS-->>RR: Settlement entry posted
+  RR->>EV: RefundReconciled event
+  RR-->>API: Final refund allocation
+  API-->>Seller: Lender, buyer and settlement breakdown
