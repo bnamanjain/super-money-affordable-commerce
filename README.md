@@ -3,7 +3,8 @@
 A focused zero-to-one proposal for adding affordable commerce to a high-frequency
 UPI app. The repository contains the product strategy, lending and commerce system
 design, interactive buyer and seller prototypes, business model, launch plan, and
-a narrated leadership presentation.
+a narrated leadership presentation. The main blueprint also contains a separate
+six-month Credit Health and Scoring case study.
 
 ## Product Thesis
 
@@ -39,7 +40,8 @@ demonstration data. Leadership viewers can open either link directly.
 
 - [Full product blueprint](docs/product-blueprint.md): strategy, personas,
   journeys, lending design, P&L, metrics, architecture, schemas, APIs, roadmap,
-  experiments, risks, and leadership email.
+  experiments, risks, leadership email, and the separate Credit Health and
+  Scoring case study.
 - [Technical system-design deep dive](docs/system-design-deep-dive.md):
   beginner-friendly, production-depth coverage of all 25 services, service
   dependencies, API architecture, workflows, events, data schemas, security,

@@ -1,0 +1,51 @@
+flowchart TB
+  subgraph mainFlow["Main score, explanation, and action-plan path"]
+    direction LR
+    clients["1. Mobile and web<br/>Credit Health"]
+    bff["2. Consumer BFF"]
+    access["3. Identity check and<br/>purpose-bound consent"]
+    orchestrator["4. Bureau Orchestrator<br/>request, retry, status"]
+    adapter["5. Bureau Adapter<br/>canonical mapping"]
+    bureau["6. Licensed credit<br/>bureau / CIC"]
+    profile["7. Credit Profile<br/>versioned snapshot"]
+    explanation["8. Explanation Service<br/>reason codes to plain language"]
+    actionPlan["9. Action Plan Service<br/>prioritized safe actions"]
+    response["10. Score dashboard<br/>factors and next steps"]
+
+    clients --> bff --> access --> orchestrator --> adapter
+    adapter <-->|authenticated pull| bureau
+    adapter --> profile --> explanation --> actionPlan --> response
+  end
+
+  subgraph correctionFlow["Correction and support path"]
+    direction LR
+    correctionEntry["Something looks wrong"]
+    dispute["Dispute and Correction<br/>case tracking"]
+    partnerCase["Bureau / furnisher<br/>correction process"]
+    support["Support console<br/>owner, status, SLA"]
+
+    correctionEntry --> dispute
+    dispute <-->|request and update| partnerCase
+    dispute --> support
+  end
+
+  subgraph shared["Shared controls and downstream use"]
+    direction LR
+    events["Event bus and outbox"]
+    audit["Audit and compliance"]
+    notify["Notifications"]
+    analytics["Analytics and experiments"]
+    eligibility["Credit eligibility<br/>separate approved purpose"]
+
+    events --> audit
+    events --> notify
+    events --> analytics
+    events -. purpose-gated event .-> eligibility
+  end
+
+  response --> correctionEntry
+  access --> audit
+  orchestrator --> events
+  profile --> events
+  actionPlan --> events
+  dispute --> events

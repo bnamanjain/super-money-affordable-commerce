@@ -1860,3 +1860,1113 @@ Naman
 ## 25. Final One-Line Pitch
 
 **Build a credit-aware commerce layer inside super.money where users discover what they can afford today, sellers grow conversion through embedded affordability, and super.money monetizes UPI frequency through responsible financed commerce.**
+
+---
+
+# Part II: Credit Health And Scoring Case Study
+
+This is a separate, independently shippable product case inside the same lending
+experience. Affordable Commerce helps a user finance a useful purchase. Credit
+Health helps the same user understand the credit profile that influences access
+to loans and cards, correct inaccurate information, and take responsible steps
+before applying again.
+
+The two experiences share platform capabilities, but they need separate
+purpose-bound consent and clear user expectations. Viewing a score must never
+silently enroll a user into a credit application, and a weak score must never be
+used as pressure to borrow.
+
+## 26. Executive Recommendation
+
+Launch an India-first **Credit Health** experience on mobile and web within six
+months. The MVP should contain three connected capabilities:
+
+1. **Latest available bureau score:** Retrieve the latest score available from
+   an approved credit bureau after identity verification and explicit consent.
+   Show the bureau, score model, range, retrieval time, and source-data
+   freshness.
+2. **Explainable score factors:** Convert bureau-supplied reason codes and
+   verified report attributes into ranked, plain-language explanations. Separate
+   positive factors, factors limiting the score, and possible report errors.
+3. **Personal action plan:** Recommend a small number of safe, relevant actions,
+   explain why each action matters, show an honest time horizon, and let the user
+   track completion.
+
+The strongest product promise is:
+
+> See the latest credit profile available from the bureau, understand the main
+> factors influencing it, and follow a clear plan to improve your financial
+> readiness.
+
+Avoid promises such as "increase your score by 50 points" or "guaranteed loan
+approval." A bureau score is one lender input, lenders apply different policies,
+and score movement depends on when lenders report updated information.
+
+### 26.1 What "real-time" means
+
+For this product, real-time means:
+
+- The app requests the latest available score when the user asks for it.
+- A successful response normally appears within seconds.
+- The score is saved as a versioned snapshot.
+- The screen states when super.money retrieved it.
+- The screen separately states when the bureau's underlying file was last
+  updated, when the bureau provides that field.
+
+Credit institutions report to bureaus on a regulatory and partner cadence.
+Therefore, the underlying credit file is not a continuously changing live bank
+balance. The current Indian direction increases reporting frequency from July
+1, 2026, but a product must still display freshness honestly. The
+[Government of India credit-bureau FAQ](https://apps.dpiit.gov.in/b-ready/assets/FAQ-Operation%20of%20Credit%20Registries.pdf)
+summarizes the current reporting and correction framework.
+
+### 26.2 Why this belongs in the broader product
+
+Credit Health can improve the affordable-commerce and lending system in four
+ways:
+
+- Build trust before asking a user to take credit.
+- Help thin-file or rebuilding users understand why some plans are unavailable.
+- Give users a responsible path to future eligibility.
+- Improve future underwriting data only when the user has provided the
+  appropriate separate consent.
+
+The product still has standalone value. A user should be able to view, learn,
+act, or dispute information without applying for a super.money credit product.
+
+## 27. Case-Study Assumptions And Decisions
+
+An interview case becomes stronger when assumptions are explicit.
+
+| Question | Working assumption | Product consequence |
+|---|---|---|
+| First launch market | India | Design first for CICRA, current RBI directions, DPDP rollout, Indian identity matching, and Indian bureau partners |
+| Platforms | Existing mobile app plus responsive authenticated web app | Shared domain APIs and design tokens; platform-specific navigation and layouts |
+| Score source | One contracted licensed bureau for MVP | One score model and one trend line; adapter supports a second bureau later |
+| Score calculation | Bureau-owned score | super.money explains supplied factors and does not present an invented proprietary score as a bureau score |
+| Refresh | On demand, subject to entitlement, partner terms, and rate limits | Clear refresh CTA, cooldown, freshness timestamp, and cached last successful snapshot |
+| Credit decision | Outside the Credit Health flow | Viewing the score has no automatic approval, rejection, hard inquiry, or loan booking |
+| Action recommendations | Rules-based and content-governed for MVP | Easier explanation, validation, localization, and legal review within six months |
+| Commercial model | Free core experience in MVP | Optimize trust and qualified engagement before introducing any paid monitoring tier |
+| Geographic expansion | One country at a time | Region configuration and legal launch gate; no single global compliance assumption |
+
+### 27.1 Product principles
+
+1. **Source before interpretation:** Show where the score and factor came from.
+2. **Freshness before urgency:** Tell the user how current the data is.
+3. **Explanation before offer:** Explain the profile before showing a card or
+   loan offer.
+4. **Action before gamification:** Prioritize useful steps over badges and
+   anxiety-inducing alerts.
+5. **Correction before monetization:** Make inaccurate-data support easy to
+   find.
+6. **Separate consents by purpose:** Score viewing, monitoring, personalized
+   recommendations, and credit underwriting may require distinct purposes.
+7. **No synthetic certainty:** Never estimate a bureau score when the partner is
+   unavailable.
+
+## 28. Problem Definition And Desired Outcomes
+
+### 28.1 User problems
+
+- "I do not know my current score or which bureau produced it."
+- "I can see a number, but I do not understand why it changed."
+- "Advice online is generic and sometimes encourages unnecessary credit."
+- "I do not know which action to take first."
+- "I found an account or late-payment record that looks wrong."
+- "I assume a high score guarantees approval."
+- "I repeatedly apply for products without understanding eligibility."
+
+### 28.2 Business problems
+
+- Users reach the loan funnel with poor understanding and low trust.
+- Rejected users receive no responsible path back to eligibility.
+- Generic offers create avoidable applications and partner costs.
+- Support teams handle basic score, freshness, and dispute questions manually.
+- Marketing may overstate the relationship between a score and approval.
+
+### 28.3 Outcome statement
+
+Within 90 days of launch, an activated user should be able to:
+
+1. Retrieve a correctly attributed score.
+2. Explain at least one important factor in plain language.
+3. Select one relevant next action.
+4. Track progress or raise a correction request.
+5. Understand that lenders make independent eligibility decisions.
+
+## 29. Target Personas And Research Plan
+
+### 29.1 Persona A: Asha, new-to-credit
+
+Context:
+
+- First salaried job.
+- One recently opened card or a small PayLater account.
+- Limited credit history.
+- Confuses "no score" with "bad score."
+
+Job to be done:
+
+> Help me understand how a credit profile is built without asking me to take
+> unnecessary debt.
+
+Most useful experience:
+
+- Explain thin-file status.
+- Show payment-history basics.
+- Recommend low-risk habits.
+- Set expectations that score building takes time.
+
+### 29.2 Persona B: Rafiq, rebuilding after missed payments
+
+Context:
+
+- Variable income.
+- One past-due event.
+- Wants a two-wheeler or working-capital product later.
+- Feels judged by a score with no explanation.
+
+Job to be done:
+
+> Show what is hurting my profile, what I can address now, and how to confirm
+> that an update reached the bureau.
+
+Most useful experience:
+
+- Prioritized overdue or correction action.
+- Due-date and utilization education.
+- Clear refresh expectations.
+- Accessible support and dispute status.
+
+### 29.3 Persona C: Neha, active credit shopper
+
+Context:
+
+- Several cards and recent applications.
+- Compares loan and card products.
+- Wants to protect her profile while finding better terms.
+
+Job to be done:
+
+> Help me understand current readiness and avoid actions that create unnecessary
+> applications.
+
+Most useful experience:
+
+- Inquiry and utilization context.
+- Eligibility education.
+- Clear separation between a score view and a product application.
+- Personalized offers only after explanation and separate consent.
+
+### 29.4 Research in the first four weeks
+
+Conduct:
+
+- 15 to 20 interviews across the three personas.
+- 5 interviews with support agents who handle score and loan-rejection queries.
+- 3 to 5 interviews with lender risk or credit-policy teams.
+- Bureau workshop on score models, reason codes, refresh, disputes, and
+  commercial limits.
+- Usability testing with low-literacy and multilingual participants.
+
+Research questions:
+
+- What does the user think the score guarantees?
+- Can the user distinguish bureau date from retrieval date?
+- Which factor labels cause shame, fear, or confusion?
+- Does the user understand the difference between a credit inquiry and a score
+  view?
+- Which actions are feasible this week, this month, or over several months?
+- Where does a user expect to correct a report error?
+- Will the user trust the feature if the score differs from another app?
+
+## 30. MVP Scope
+
+### 30.1 P0 capabilities required for launch
+
+| Capability | User value | Launch requirement |
+|---|---|---|
+| Identity match | Pull the correct person's data | Strong authentication, required identifiers, match-failure handling |
+| Purpose notice and consent | Understand what data will be requested and why | Versioned notice, affirmative action, withdrawal path, consent evidence |
+| Score retrieval | See the latest available bureau score | Partner API, timeout handling, idempotency, retries, status |
+| Score dashboard | Understand number, band, source, model, range, and freshness | Mobile and responsive web |
+| Score history | See movement without mixing models | Versioned snapshots from the same bureau/model |
+| Factor explanations | Understand positive and limiting factors | Approved reason-code mapping and content governance |
+| Action plan | Know what to do first | Maximum three prioritized actions with rationale and time horizon |
+| Education library | Learn core concepts | Plain language, local examples, multilingual-ready content |
+| Correction path | Address possible inaccurate data | Bureau handoff or integrated case, attachments, status, SLA |
+| Failure and no-file states | Understand why no number is shown | No-file, thin-file, mismatch, consent expired, partner delayed, rate-limited |
+| Notifications | Know when a requested refresh or dispute changes | Opt-in, purpose-limited, frequency controls |
+| Analytics and audit | Measure and prove correct handling | Event taxonomy, consent trail, partner response evidence |
+| Accessibility | Use the experience across ability levels | Screen-reader labels, text resizing, contrast, keyboard use on web |
+
+### 30.2 P1 capabilities after the first launch
+
+- A score simulator that uses bureau-approved logic and clearly labels itself as
+  an estimate.
+- More than one bureau, with separate score histories and explanations.
+- Verified action completion through account or bureau updates.
+- Personalized reminders based on user-selected goals.
+- Multilingual education beyond the initial supported languages.
+- A paid monitoring tier, only after free-core value, entitlement, and marketing
+  rules are validated.
+- Proactive breach or identity-monitoring products where partners and regulation
+  permit.
+
+### 30.3 Explicit non-goals for the six-month MVP
+
+- Building a proprietary bureau-equivalent score.
+- Guaranteeing score movement or loan approval.
+- Automatically opening a loan or card application after score retrieval.
+- Encouraging a new credit account solely to create engagement.
+- Combining scores from different bureaus into one artificial trend line.
+- Giving legal, debt-settlement, or investment advice.
+- Automating a correction outcome that only a bureau or furnishing institution
+  can confirm.
+- Launching in every country at the same time.
+
+## 31. Mobile And Web Product Experience
+
+Both clients use the same APIs and core content. Mobile emphasizes short,
+progressive steps. Web uses the additional width for report detail, history, and
+side-by-side education.
+
+### 31.1 Entry points
+
+- Credit tab on the app and web navigation.
+- Credit-product eligibility screen, after the user sees the decision and
+  without forcing a new score pull.
+- Repayment home, when a user asks how repayment behavior is reflected.
+- Search or help query for "credit score."
+- Consent-based lifecycle communication inviting the user to check their
+  profile.
+
+Avoid urgency-led entry copy such as "Your score may have fallen" unless a
+confirmed new snapshot supports that statement.
+
+### 31.2 First-time journey
+
+```text
+Credit Health entry
+  -> what the feature provides
+  -> bureau, data, purpose, and refresh explanation
+  -> identity confirmation
+  -> explicit consent
+  -> score request
+  -> score dashboard
+  -> factor detail
+  -> select one action
+  -> reminder or progress tracking
+```
+
+### 31.3 Score dashboard
+
+The first viewport should show:
+
+- Numerical score.
+- Score range and plain-language band.
+- Bureau and model name.
+- "Retrieved on" timestamp.
+- "Bureau data updated on" date when available.
+- Change from the previous comparable snapshot.
+- Top positive factor.
+- Top factor to work on.
+- Primary CTA: "See my action plan."
+- Secondary CTA: "View report details."
+- Persistent link: "Something looks wrong?"
+
+Do not use red alarm styling for a low score. The product can communicate risk
+without creating panic.
+
+### 31.4 Factor detail
+
+Each factor card answers:
+
+1. **What was observed?**
+2. **Why can this matter?**
+3. **What can the user do?**
+4. **When might updated information appear?**
+5. **Where did this explanation come from?**
+
+Example:
+
+```text
+Factor: High reported card utilization
+
+What we observed:
+Your reported card balances use a high share of your available limits.
+
+Why it can matter:
+Higher utilization can indicate less available repayment capacity.
+
+Possible next step:
+Pay down an existing balance when financially feasible. Avoid taking a new loan
+only to change this number.
+
+Timing:
+Any change depends on when your card issuer reports the new balance.
+```
+
+Factor ordering should use bureau reason-code priority. Product copy may explain
+the code, but it must not claim a factor caused an exact number of points unless
+the bureau contract and model explicitly support that claim.
+
+### 31.5 Action plan
+
+Show at most three active actions:
+
+| Action type | Example | Verification |
+|---|---|---|
+| Correct | Dispute an unfamiliar account or inaccurate late-payment record | Bureau or furnisher confirms case outcome |
+| Stabilize | Bring a contractual overdue amount current where financially feasible | Lender/bureau update |
+| Reduce | Lower reported revolving utilization | New comparable bureau snapshot |
+| Protect | Avoid unnecessary repeated applications for a selected period | User confirmation plus inquiry data where available |
+| Maintain | Keep upcoming obligations on time | Repayment events and later bureau update |
+| Build safely | Establish history through a suitable product only if the user wants credit | Separate suitability, application, and consent flow |
+
+Each action includes:
+
+- Priority and reason.
+- User-controlled start.
+- Suggested time horizon.
+- Evidence required for verification.
+- Reminder preference.
+- "Why this may help" explanation.
+- Disclaimer that score movement and credit approval are not guaranteed.
+
+### 31.6 Important product states
+
+| State | What the UI says | What the system does |
+|---|---|---|
+| Score available | Source, score, band, factors, freshness | Store versioned snapshot and render plan |
+| Thin or no file | Bureau could not produce a score | Explain safely; show general credit-building education |
+| Identity mismatch | Details could not be matched confidently | Do not expose any report data; offer correction/support |
+| Partner pending | Request is taking longer than expected | Preserve request ID, allow safe exit, notify after consent |
+| Partner unavailable | Latest score cannot be retrieved now | Show last valid snapshot with date when allowed, or no score |
+| Rate limited | Refresh is available after a stated time | Preserve last snapshot and explain cooldown |
+| Consent withdrawn | Monitoring and future pulls stop | Retain only what policy and law require |
+| Possible inaccuracy | User starts a correction | Create tracked case and show owner, status, and SLA |
+| Score model changed | New result is not directly comparable | Start a new trend series and explain the change |
+
+## 32. Product And System Architecture
+
+![Credit Health architecture connecting mobile and web clients, consent,
+bureau orchestration, score storage, explanations, action plans, disputes, and
+shared platform services](diagrams/credit-health-architecture.svg)
+
+[Open the editable Mermaid source](diagrams/credit-health-architecture.mmd).
+
+### 32.1 New capabilities
+
+| Component | What it owns | Main inputs | Main outputs |
+|---|---|---|---|
+| Bureau Orchestrator | Pull lifecycle, deduplication, status, timeout, retry | User, consent, bureau, purpose, idempotency key | Pending, succeeded, failed, or action-required pull |
+| Bureau Adapter | Partner-specific authentication and canonical mapping | Canonical request, partner credentials | Canonical score, factors, report reference, error |
+| Credit Profile Service | Comparable score snapshots and freshness metadata | Successful canonical bureau response | Latest profile, history, profile events |
+| Explanation Service | Approved mapping from reason code to education | Bureau/model/version, reason codes, locale | Ranked plain-language factor explanations |
+| Action Plan Service | Prioritized recommendations and progress | Factors, verified profile context, policy version | Maximum three actions, rationale, status |
+| Dispute and Correction Module | User case, evidence, partner handoff, SLA | Report item, reason, attachment references | Case ID, owner, status, resolution evidence |
+
+### 32.2 Existing capabilities reused
+
+- Identity and User Profile verifies the signed-in person.
+- Consent and Document Service stores the exact purpose notice and acceptance.
+- Transaction Intelligence can support actions only under an approved purpose.
+- Eligibility receives bureau-derived data only under a separate lending
+  purpose.
+- Notification Service sends user-approved refresh and action reminders.
+- Support and Case Service gives agents a redacted unified view.
+- Audit Store records pulls, access, factor mappings, recommendation versions,
+  and operator actions.
+- Analytics measures funnels and outcomes from minimized events.
+
+The broader service architecture is explained in the
+[technical system-design deep dive](system-design-deep-dive.md).
+
+### 32.3 Canonical score snapshot
+
+```json
+{
+  "credit_profile_id": "cp_01K0...",
+  "user_id": "usr_01K0...",
+  "bureau": "BUREAU_A",
+  "score_model": "CONSUMER_SCORE_V4",
+  "score": 742,
+  "score_min": 300,
+  "score_max": 900,
+  "score_band": "GOOD",
+  "bureau_file_updated_at": "2026-07-20",
+  "retrieved_at": "2026-07-26T08:20:31Z",
+  "comparable_to_previous": true,
+  "reason_codes": [
+    {
+      "code": "REVOLVING_UTILIZATION_HIGH",
+      "rank": 1,
+      "direction": "LIMITING"
+    }
+  ],
+  "report_reference": "br_ref_...",
+  "consent_id": "con_...",
+  "source_payload_hash": "sha256:...",
+  "policy_version": "credit-health-in-v1.0"
+}
+```
+
+The raw bureau payload belongs in a tightly controlled encrypted integration
+store only when contract, purpose, and retention policy require it. Product
+services should use the minimized canonical model.
+
+### 32.4 Consumer APIs
+
+```text
+POST /v1/credit-health/consent-sessions
+POST /v1/credit-health/score-pulls
+GET  /v1/credit-health/score-pulls/{pull_id}
+GET  /v1/credit-health/profile/latest
+GET  /v1/credit-health/profile/history
+GET  /v1/credit-health/factors
+GET  /v1/credit-health/action-plan
+PATCH /v1/credit-health/actions/{action_id}
+POST /v1/credit-health/disputes
+GET  /v1/credit-health/disputes/{dispute_id}
+DELETE /v1/credit-health/monitoring-consent
+```
+
+Example asynchronous pull response:
+
+```json
+{
+  "data": {
+    "pull_id": "pull_01K0...",
+    "status": "PENDING_PARTNER",
+    "poll_after_seconds": 3,
+    "latest_usable_snapshot": {
+      "credit_profile_id": "cp_previous",
+      "retrieved_at": "2026-06-26T06:10:00Z"
+    }
+  },
+  "meta": {
+    "request_id": "req_...",
+    "trace_id": "trc_..."
+  }
+}
+```
+
+The API returns `202 Accepted` for a pending partner response. It never returns
+an estimated score in the `score` field.
+
+### 32.5 Key technical controls
+
+- Idempotency key on every score pull and dispute command.
+- Strong user-to-report identity matching.
+- Partner credentials in a secrets manager.
+- Mutual TLS or partner-required secure transport.
+- Encryption at rest for credit profile data.
+- Field-level access control and support redaction.
+- Separate production and analytics identifiers.
+- Versioned reason-code and recommendation mappings.
+- Complete audit trail for data access.
+- Configurable regional retention and deletion.
+- Circuit breaker and queue around a slow bureau.
+- Contract tests against a bureau sandbox.
+- No bureau data in client logs, analytics properties, URLs, or crash reports.
+
+## 33. Compliance Across Regions
+
+Compliance is a launch workstream with product requirements, engineering
+controls, legal evidence, and operational owners. A legal review at the end of
+development is too late.
+
+### 33.1 Regional compliance operating model
+
+Create one control register per launch country:
+
+| Control area | Decision required before build | Evidence before launch |
+|---|---|---|
+| Entity and role | Is the company a credit institution, specified user, agent, data fiduciary, report user, or another defined role? | Counsel memo and partner confirmation |
+| Permitted purpose | Why may the company request this report or score? | API purpose code, product flow, contract clause |
+| Consent/legal basis | Which data and uses require consent or another basis? | Versioned notice, consent record, withdrawal test |
+| Identity | What identifiers and authentication are required? | Match design, false-match test, no-data-leak test |
+| Display | Which score, source, range, model, factors, and disclaimers must be shown? | Approved screens and localized copy |
+| Credit decision use | Does score viewing feed underwriting or adverse action? | Separate data-flow and decision-policy review |
+| Correction and grievance | Who owns a dispute and what timeline applies? | Working case flow, escalation route, SLA dashboard |
+| Retention and deletion | How long can raw reports, snapshots, consent, and audit evidence remain? | Data inventory, TTL configuration, deletion test |
+| Residency and transfer | Where can data be stored or accessed? | Cloud and subprocessors register |
+| Marketing | Which "free," "real-time," "improve," and approval claims are allowed? | Legal-approved claim library |
+| Fairness and accessibility | Could the experience disadvantage a protected or vulnerable group? | Outcome review and accessibility sign-off |
+| Security and incidents | What controls and notifications apply? | Threat model, penetration test, incident runbook |
+
+Regional rules live in configuration:
+
+```text
+region_policy
+  enabled_bureaus
+  permitted_purpose_codes
+  score_ranges_and_bands
+  refresh_cooldown
+  identity_requirements
+  notice_and_consent_versions
+  factor_content_versions
+  dispute_sla
+  retention_schedule
+  data_residency
+  allowed_marketing_claims
+  monitoring_default
+```
+
+Product launch is geofenced until Legal, Security, Risk, Product, and Operations
+approve that region's configuration.
+
+### 33.2 India launch baseline
+
+The final interpretation depends on super.money's legal entity, partner model,
+and exact data flow. The case study should explicitly examine:
+
+- Credit Information Companies (Regulation) Act, 2005, associated rules and
+  regulations, and whether super.money has the permitted role and purpose to
+  obtain and display the data.
+- The current entity-specific RBI Credit Information Reporting Directions issued
+  on November 28, 2025. The January 6, 2025 consolidated direction was replaced.
+  The government
+  [credit-bureau FAQ](https://apps.dpiit.gov.in/b-ready/assets/FAQ-Operation%20of%20Credit%20Registries.pdf)
+  explains this transition and links the current directions.
+- Strong authentication before exposing a report.
+- Clear source attribution and latest available information.
+- An accessible correction and grievance route. Current guidance describes a
+  combined 30-day correction window for CIC and credit-institution handling.
+- The user's free full credit report entitlement and bureau-specific commercial
+  terms. The
+  [RBI free annual credit report direction](https://rbi.org.in/commonperson/English/Scripts/Notification.aspx?Id=1884)
+  requires one free full report including a score per calendar year from each
+  CIC for an eligible individual.
+- Data minimization, security, purpose limitation, user rights, and the phased
+  commencement of the
+  [Digital Personal Data Protection Rules, 2025](https://www.meity.gov.in/documents/act-and-policies/digital-personal-data-protection-rules-2025-gDOxUjMtQWa).
+- RBI digital-lending requirements if the data is later used in a loan journey.
+  Score-view consent should not be treated as lending consent.
+
+### 33.3 Examples for later regional expansion
+
+These examples demonstrate the operating model; they do not replace local legal
+advice.
+
+- **United States:** Validate a permissible purpose under FCRA before obtaining
+  a consumer report, support file access and disputes, and preserve required
+  adverse-action and ECOA explanations when the score affects a credit decision.
+  The
+  [CFPB permissible-purpose guidance](https://www.consumerfinance.gov/rules-policy/final-rules/fair-credit-reporting-permissible-purposes-for-furnishing-using-and-obtaining-consumer-reports/)
+  states that a report cannot be obtained without a permissible purpose.
+- **European Union:** Map GDPR legal basis, transparency, access, correction,
+  profiling, and automated-decision rights. If super.money builds or deploys AI
+  to evaluate creditworthiness or establish a score, perform an AI Act
+  classification and compliance assessment. The
+  [European Commission AI Act overview](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
+  identifies some credit-scoring uses as high-risk.
+
+### 33.4 Compliance stage gates
+
+| Gate | Timing | Required decision |
+|---|---|---|
+| Regulatory framing | End of week 2 | Permitted role, purpose, first market, score-display model |
+| Data design | End of week 6 | Field inventory, retention, residency, access, consent evidence |
+| Experience approval | End of week 10 | Claims, factors, actions, correction path, accessibility |
+| Technical assurance | End of week 18 | Threat model, partner controls, audit, deletion, incident test |
+| Launch approval | End of week 22 | Signed control register, open-risk acceptance, operational readiness |
+
+## 34. Success Metrics
+
+### 34.1 North Star
+
+**Monthly Credit Health Progressors**
+
+A unique user who, within 30 days:
+
+1. Views a fresh or clearly dated valid score snapshot.
+2. Opens at least one factor explanation.
+3. Starts or completes one relevant action, or raises a correction for a
+   suspected inaccuracy.
+
+This measures informed progress. A raw monthly score-view count can grow through
+anxiety-driven notifications without improving user outcomes.
+
+### 34.2 Metric tree
+
+| Layer | Metrics |
+|---|---|
+| Reach | Eligible users, Credit Health entry impressions, entry CTR, web/mobile split |
+| Consent | Notice completion, consent acceptance, withdrawal rate, abandonment by step |
+| Retrieval | Successful pulls, no-file rate, mismatch rate, partner error rate, p50/p95 latency, cost per successful pull |
+| Activation | First score viewed, factor opened, action plan opened, correction link discovered |
+| Understanding | "I understand the main factor" survey, source/freshness comprehension, education completion, support contacts about basic meaning |
+| Action | Action selected, reminder enabled, action completion, verified action completion, dispute initiated and resolved |
+| Retention | 30/60/90-day Credit Health return, refresh rate within policy, notification opt-out |
+| User outcome | Comparable-score improvement distribution at 90/180 days, overdue resolution, utilization improvement, correction success |
+| Credit outcome | Qualified application rate, approval uplift, risk-adjusted conversion, 30+ DPD and loss among exposed cohorts |
+| Trust and safety | Complaints, incorrect-person incidents, stale-score mislabeling, unresolved disputes, accessibility defects, unfair outcome alerts |
+| Economics | Bureau cost per activated/progressing user, support cost, incremental risk-adjusted revenue, retained-user value |
+
+### 34.3 Illustrative first-90-day targets
+
+Targets should be calibrated with baseline and partner performance:
+
+- At least 95% successful retrieval among correctly verified, bureau-matchable
+  users.
+- p95 score-pull completion under 8 seconds when the bureau responds
+  synchronously.
+- At least 65% of consent starters reach the first score view.
+- At least 40% of score viewers open a factor.
+- At least 25% of activated users start an action.
+- At least 30% of activated users return within 30 days when a relevant update
+  or action exists.
+- Zero confirmed wrong-person report exposures.
+- Zero score displays without bureau, model/range, and freshness context.
+- 100% of correction cases have a visible owner and SLA.
+
+### 34.4 Outcome-measurement design
+
+Score improvement is delayed and affected by selection bias. Users who choose an
+action may already be more motivated. Use:
+
+- Randomized reminder and education experiments where ethical.
+- Matched holdouts for action-plan exposure.
+- Comparable snapshots from the same bureau and model.
+- 90-day and 180-day outcome windows.
+- Segment cuts for thin-file, rebuilding, and active-credit users.
+- Guardrails for applications, delinquency, complaints, and financial stress.
+
+Do not optimize an average score increase alone. A product could produce that
+number by excluding users who need the most help.
+
+## 35. Handling A Bureau Or Data-Partner Delay
+
+### 35.1 Design the dependency before it fails
+
+The bureau contract and integration plan should define:
+
+- Sandbox availability and representative test cases.
+- API availability, latency, rate limits, and maintenance windows.
+- Score model and reason-code versioning.
+- Data freshness and completeness fields.
+- Incident notification and escalation contacts.
+- Correction and dispute handoff.
+- Reconciliation and usage reporting.
+- Data retention, deletion, security, audit, and subprocessor terms.
+- Commercial cost per call and duplicate-call treatment.
+- Disaster recovery and business-continuity commitments.
+- Exit and data-deletion obligations.
+
+Engineering should build against a canonical contract and simulator while the
+partner integration is incomplete. The bureau adapter contains partner field
+names, authentication, and error mapping; the rest of the product uses stable
+internal contracts.
+
+### 35.2 User-facing degradation
+
+| Situation | Product response |
+|---|---|
+| Slow response under timeout | Keep request pending, allow user to leave, notify on completion |
+| Temporary outage with valid prior snapshot | Show prior snapshot with its original date and a clear refresh-delay message |
+| Temporary outage without prior snapshot | Show unavailable state and general education; never fabricate a score |
+| Partial response | Display only complete, contractually valid fields; hold factors/actions that lack evidence |
+| Rate limit | Queue or reject safely, show next eligible refresh time |
+| Extended outage | Disable new pulls by feature flag, preserve history and correction access |
+| Data integrity concern | Stop display of affected snapshots and activate incident/support process |
+
+### 35.3 Delivery-delay decision tree
+
+```text
+Partner delivery slips
+  |
+  +-- Contract/schema available?
+  |     Yes -> continue client, simulator, storage, analytics, and contract tests
+  |     No  -> escalate commercial and executive dependency immediately
+  |
+  +-- Production readiness before week 16?
+  |     Yes -> preserve controlled beta date
+  |     No  -> move score launch behind feature flag; continue education shell
+  |
+  +-- Approved second bureau available?
+        Yes -> integrate as a separately labelled source and new baseline
+        No  -> narrow cohort or geography; do not silently substitute a score
+```
+
+An education-only shell can be released for learning, but it does not satisfy
+the complete case requirement for a real score. Leadership should receive an
+explicit scope/date tradeoff rather than a nominal launch with simulated data.
+
+## 36. Go-To-Market Strategy
+
+### 36.1 Positioning
+
+Primary message:
+
+> Understand your credit profile and take the next responsible step.
+
+Supporting proof:
+
+- Score source and date are visible.
+- Factors are explained in plain language.
+- Actions are prioritized.
+- Correction support is easy to find.
+- Viewing Credit Health does not guarantee approval.
+
+### 36.2 Initial audiences
+
+Launch in this sequence:
+
+1. Existing users with a credit relationship and high identity confidence.
+2. Users who voluntarily visit the Credit tab.
+3. Users rebuilding after a past issue, with carefully reviewed messaging.
+4. Thin-file users who may receive a no-score result.
+5. Broader logged-in users after retrieval and support metrics stabilize.
+
+### 36.3 Rollout
+
+| Stage | Audience | Goal | Exit criteria |
+|---|---|---|---|
+| Employee alpha | Employees and test identities | Validate data mapping and support | No critical identity, consent, or mapping defects |
+| Invite beta | 1,000 to 5,000 users | Test comprehension and retrieval | Stable success/latency; approved copy; support ready |
+| Controlled launch | 5% to 10% of eligible users | Measure activation, trust, and action starts | Guardrails green for two reporting cycles |
+| Expanded launch | 25% to 50% | Validate unit economics and partner scale | Cost, availability, dispute SLA, retention stable |
+| General availability | Approved India cohort | Scale the product | Executive launch gate complete |
+
+### 36.4 Channels
+
+- Credit tab placement on mobile and web.
+- Contextual entry from repayment and eligibility screens.
+- Consent-based push, email, and in-app inbox.
+- Financial education content and short explainers.
+- Bureau-partner education where claims and branding are contractually approved.
+- Support-agent scripts and help-center search.
+- PR focused on transparency and financial understanding after operational
+  stability is proven.
+
+### 36.5 Marketing controls
+
+- Legal-approved claims library for "free," "latest," "real-time," "improve,"
+  and "eligible."
+- Bureau trademark and attribution approval.
+- No guaranteed point movement or approval.
+- No fear-based "score dropped" notification without confirmed evidence.
+- Clear labeling of sponsored or personalized offers.
+- Frequency caps and easy communication opt-out.
+- Regional and language review.
+- Holdout groups to measure incrementality.
+
+### 36.6 Commerce and lending cross-sell
+
+After the user understands the profile, the app may show:
+
+- Products for which the user is already eligible.
+- Secured or credit-building products when suitable.
+- Education about how a future review works.
+
+The offer module must use separate consent and eligibility. It should never imply
+that purchasing a product will certainly improve the bureau score.
+
+## 37. Six-Month Delivery Plan
+
+### Month 1: Define and de-risk
+
+- Confirm India-first scope and executive sponsor.
+- Complete user, support, lender, and bureau research.
+- Define real-time, refresh, no-file, and correction behavior.
+- Select bureau shortlist and commercial model.
+- Complete legal role and permissible-purpose memo.
+- Draft data inventory, consent model, and regional control register.
+- Establish North Star, event taxonomy, and baseline.
+
+Exit gate:
+
+- Approved scope, legal path, partner shortlist, prototype concept, and critical
+  risks.
+
+### Month 2: Contract, design, and architecture
+
+- Finalize bureau contract, sandbox, SLA, security, and dispute model.
+- Test mobile and web prototypes with users.
+- Approve score, factor, action, failure, and correction copy.
+- Finalize canonical schema, APIs, retention, and access controls.
+- Build bureau simulator and contract-test suite.
+- Design operational dashboards and support workflow.
+
+Exit gate:
+
+- Signed integration plan, design sign-off, API contract, and data-control
+  approval.
+
+### Month 3: Build the score foundation
+
+- Implement consent and identity flow.
+- Build Bureau Orchestrator and first adapter.
+- Store versioned score snapshots.
+- Build score dashboard on mobile and web.
+- Implement pending, no-file, mismatch, and outage states.
+- Add audit, security telemetry, and partner reconciliation.
+
+Exit gate:
+
+- Employee alpha retrieves and displays correctly attributed test and approved
+  production-like scores end to end.
+
+### Month 4: Explain and guide
+
+- Implement reason-code mapping and content service.
+- Build action plan and progress tracking.
+- Add score history with comparability rules.
+- Implement correction/dispute flow and support console.
+- Add notifications and preference controls.
+- Complete accessibility and multilingual-readiness testing.
+
+Exit gate:
+
+- Invite beta completes score, factor, action, and correction workflows.
+
+### Month 5: Validate and prepare GTM
+
+- Run controlled beta.
+- Measure comprehension, retrieval, actions, complaints, and support load.
+- Conduct penetration test, privacy review, incident simulation, and deletion
+  test.
+- Validate fairness and segment outcomes.
+- Load-test partner and platform paths.
+- Train Support, Marketing, Risk, Operations, and incident responders.
+- Finalize launch content, FAQs, and campaign holdouts.
+
+Exit gate:
+
+- Signed legal, security, risk, data, support, and partner readiness.
+
+### Month 6: Progressive launch
+
+- Release to 5% to 10% of eligible users.
+- Hold daily launch room for the first week.
+- Monitor wrong-person risk, retrieval, latency, disputes, and complaints.
+- Expand only after guardrails remain green.
+- Start 30-day retention and 90-day outcome cohorts.
+- Publish the first executive scorecard and post-launch backlog.
+
+### 37.1 Critical path
+
+The critical path is:
+
+```text
+Legal role and permissible purpose
+  -> bureau contract and sandbox
+  -> identity and consent
+  -> canonical data mapping
+  -> end-to-end retrieval
+  -> correction operations
+  -> security and legal launch approval
+```
+
+Design, client development, education content, analytics, and support tooling can
+progress against the simulator while the partner completes production access.
+
+## 38. Stakeholder Operating Model
+
+### 38.1 Core team
+
+- 1 Product Manager
+- 1 Engineering Manager or Tech Lead
+- 2 backend engineers
+- 2 mobile engineers
+- 1 web engineer
+- 1 product designer
+- 1 data scientist or decision scientist
+- 1 data/analytics engineer
+- Shared QA/SDET
+- Shared Legal, Compliance, Security, Risk, Marketing, Support, and Operations
+
+### 38.2 Decision ownership
+
+| Workstream | Accountable | Responsible partners | Required output |
+|---|---|---|---|
+| Product scope and sequencing | PM | Design, Engineering, Risk | PRD and launch gates |
+| Bureau contract and SLA | Partnerships lead | PM, Legal, Engineering, Finance | Signed contract and escalation tree |
+| Legal role and consent | Legal/Compliance | PM, Privacy, Partner | Control memo and approved notices |
+| Data model and integration | Engineering lead | Bureau, Security, Data | Canonical contract and runbook |
+| Factor interpretation | Product/Risk | Bureau, Legal, Design, Data Science | Versioned approved mapping |
+| Action recommendations | Product/Risk | Legal, Data Science, Design | Policy and content library |
+| Fairness and model governance | Risk/Data Science | Legal, Analytics, Bureau | Validation and monitoring plan |
+| Mobile and web experience | Design | PM, Engineering, Accessibility | Tested designs and component specs |
+| Measurement | Analytics | PM, Engineering, Finance | Event dictionary and dashboards |
+| Support and disputes | Operations | Bureau, Legal, Product | SOP, SLA, escalation, training |
+| GTM | Marketing | Product, Legal, Support, Bureau | Claims, cohorts, channels, holdouts |
+| Launch decision | Executive sponsor | All workstream owners | Signed go/no-go review |
+
+### 38.3 Operating cadence
+
+- Weekly cross-functional product review.
+- Twice-weekly bureau integration review during months 2 to 4.
+- Fortnightly legal, privacy, risk, and security control review.
+- Weekly user-research playback during discovery and beta.
+- Monthly executive steering review.
+- Daily launch room during the first week of rollout.
+
+Maintain one decision log. Record the owner, decision, evidence, date, policy
+version, and reopen condition.
+
+## 39. Experimentation Plan
+
+### Experiment 1: Score-first versus explanation-first
+
+Question:
+
+- Does a short source-and-freshness explanation improve comprehension without
+  reducing activation?
+
+Primary metric:
+
+- First score view followed by correct source/freshness comprehension.
+
+Guardrail:
+
+- Consent abandonment.
+
+### Experiment 2: One action versus three actions
+
+Question:
+
+- Does one recommended next step increase completion for rebuilding users?
+
+Primary metric:
+
+- Action completion within 30 days.
+
+Guardrail:
+
+- "Advice was not useful" feedback.
+
+### Experiment 3: Reminder framing
+
+Variants:
+
+- Goal-based reminder.
+- New-data-available reminder.
+- No reminder holdout.
+
+Primary metric:
+
+- Relevant return and verified action completion.
+
+Guardrails:
+
+- Notification opt-out, complaints, anxiety feedback.
+
+### Experiment 4: Offer placement
+
+Variants:
+
+- No product offer in Credit Health.
+- Offer after action plan.
+- Offer on a separate eligibility tab.
+
+Primary metric:
+
+- Qualified applications and risk-adjusted approval.
+
+Guardrails:
+
+- Understanding, trust, repeated applications, 30+ DPD.
+
+## 40. Major Risks And Mitigations
+
+| Risk | Why it matters | Mitigation |
+|---|---|---|
+| Wrong-person match | Severe privacy and consumer harm | Strong authentication, multi-identifier match, fail closed, incident kill switch |
+| Misleading "real-time" claim | Breaks trust and may create regulatory risk | Define retrieval and data dates separately; legal-approved claims |
+| Score differs from another app | Different bureau/model/date may be valid | Show source, range, model, and date; do not merge trend lines |
+| Generic advice causes harm | User may borrow or move money unnecessarily | Safe-action policy, legal/risk review, no guaranteed impact |
+| Factor explanation drifts from bureau model | Advice becomes inaccurate | Versioned mapping, bureau review, contract tests, kill switch |
+| Partner outage | Core value is unavailable | Pending flow, valid dated cache, simulator, feature flag, explicit status |
+| Dispute handoff fails | User cannot correct harmful data | Tracked case, owner, SLA, reconciliation, escalation |
+| Product becomes a loan-sales funnel | Trust and responsible-lending goals erode | Separate consent, education-first layout, offer labeling, guardrails |
+| Cost per bureau pull is high | Free product economics fail | Refresh cooldown, deduplication, negotiated tiers, cost per progressor |
+| Score optimization drives exclusion | Users needing help disappear from metrics | Segment reporting and inclusion guardrails |
+| Cross-region rules diverge | One flow becomes non-compliant | Region policy, geofencing, local counsel, launch control register |
+
+## 41. How To Present This Case Study
+
+A clear leadership or interview narrative can fit into 10 slides:
+
+1. **Problem:** Users see credit decisions without understanding their financial
+   profile.
+2. **Product promise:** Latest available score, understandable factors, and a
+   responsible action plan.
+3. **Real-time definition:** Retrieval time, bureau freshness, and why both dates
+   matter.
+4. **Personas:** New-to-credit, rebuilding, and active-credit shopper.
+5. **MVP scope:** The three capabilities, correction flow, failure states, and
+   non-goals.
+6. **Experience:** Mobile and web journey from consent to action.
+7. **System:** Bureau adapter, score snapshots, explanation, action plan, and
+   shared platform.
+8. **Compliance and partner risk:** Regional control register, separate consent,
+   dispute operations, and partner-delay plan.
+9. **Execution:** Six-month roadmap, critical path, and stakeholder ownership.
+10. **Impact:** North Star, user outcomes, business metrics, and safety
+    guardrails.
+
+Recommended prototype sequence:
+
+```text
+Mobile:
+Credit tab -> consent -> score -> factor -> action -> correction/pending state
+
+Web:
+Score overview -> history -> factor detail -> action tracker -> report/dispute
+```
+
+The prototype should demonstrate at least one successful score retrieval, one
+thin-file or unavailable state, and one correction journey. Those states prove
+the product handles reality beyond the ideal dashboard.
+
+## 42. Concise Answers To The Case Questions
+
+### How would you define scope?
+
+Start with one country, one bureau, one score model, and three connected
+capabilities: score, explanations, and actions. Include consent, source,
+freshness, no-file, partner-failure, and correction states because they are part
+of the core user promise. Defer proprietary scoring, multiple bureaus, score
+simulation, and paid monitoring.
+
+### How would you ensure compliance across regions?
+
+Create a country-specific control register covering legal role, permitted
+purpose, consent, identity, display, decision use, correction, retention,
+residency, marketing, fairness, and security. Implement these as region policy,
+geofence the feature, and require Legal, Security, Risk, Operations, and Product
+sign-off before each market opens.
+
+### What metrics would you track?
+
+Use Monthly Credit Health Progressors as the North Star. Track reach, consent,
+retrieval reliability, activation, comprehension, action completion, correction
+outcomes, retention, comparable score movement, qualified credit outcomes,
+partner cost, complaints, identity incidents, fairness, and delinquency
+guardrails.
+
+### How would you handle bureau delay?
+
+Develop against a canonical simulator, isolate the partner behind an adapter,
+contract SLAs and versioning, support pending and dated-cache states, and use
+feature flags. A second bureau is a separately labelled source with a new
+baseline. Never fabricate or silently substitute a score.
+
+### What is the GTM?
+
+Position the product around understanding and responsible progress. Start with
+employees, move to invite beta, then expand from 5% to general availability only
+when retrieval, disputes, complaints, and identity guardrails remain healthy.
+Use owned credit surfaces, education, consent-based lifecycle channels, and
+legal-approved claims. Place lending offers after explanation with separate
+consent and holdout measurement.
+
+## 43. Credit Health One-Line Pitch
+
+**Give every user a trustworthy view of the latest credit profile available from
+the bureau, explain what influences it, and turn that understanding into a small,
+responsible action plan that improves financial readiness over time.**
