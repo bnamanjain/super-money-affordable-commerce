@@ -9,7 +9,8 @@
     "postbuild": "node scripts/copy-hosting-meta.mjs",
     "predev": "node scripts/build-static.mjs",
     "dev": "vinext dev",
-    "start": "vinext start"
+    "start": "vinext start",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

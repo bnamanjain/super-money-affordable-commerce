@@ -5,7 +5,7 @@
   risk, compliance, operations, and seller-platform teams
 - **Architecture status:** Conceptual production design for the
   affordable-commerce proposal
-- **Last reviewed:** 25 July 2026
+- **Last reviewed:** 26 July 2026
 
 > This document teaches the system from first principles. It starts with a simple
 > mental model, follows one purchase from beginning to end, and then goes into
@@ -47,6 +47,7 @@
 23. [Architecture Decisions and Open Questions](#23-architecture-decisions-and-open-questions)
 24. [Glossary](#24-glossary)
 25. [Primary References](#25-primary-references)
+26. [Credit Health Management System](#part-ii-credit-health-management-system)
 
 ---
 
@@ -67,6 +68,36 @@ That sentence contains three systems that must behave as one:
 
 The buyer should experience one purchase. Internally, the platform must preserve
 the separate legal and operational records of all three systems.
+
+### 1.1 Six-capability leadership map
+
+The complete architecture contains many responsibilities. Start with these six
+capabilities:
+
+```mermaid
+flowchart LR
+    A[Borrower app<br/>Merchant API] --> B[Catalogue and discovery]
+    A --> C[Credit Health and eligibility]
+    B --> D[Offer engine]
+    C --> D
+    D --> E[Checkout orchestrator]
+    E --> F[Payment, lender, order]
+    F --> G[Repayment, refund, settlement]
+```
+
+Read it in plain English:
+
+1. A borrower or merchant channel starts a request.
+2. Catalogue decides what supply is valid and discoverable.
+3. Credit Health explains bureau data; eligibility separately decides whether a
+   user and transaction can proceed.
+4. Offer Engine constructs transparent plans.
+5. Checkout Orchestrator runs the multi-system transaction.
+6. Downstream ledgers preserve repayment, refund, and seller money.
+
+The detailed 25-service map later in the document decomposes these capabilities
+for ownership, security, scaling, and failure isolation. It is an implementation
+map rather than the opening product story.
 
 ---
 
@@ -126,6 +157,7 @@ to the most detailed engineering view.
 | 5 | [Refund and settlement sequence](diagrams/refund-settlement.svg) | How does a return change credit, buyer money, and seller payout? | Follow lender adjustment first, buyer excess second, and seller reversal third. |
 | 6 | [Core data model](diagrams/core-data-model.svg) | Which records connect a user and seller to a quote, checkout, loan, payment, order, refund, and settlement? | Begin at `CHECKOUT_SESSION` in the middle and move outward. `PK` is a primary key; `FK` is a foreign key. |
 | 7 | [Deployment topology](diagrams/deployment-topology.svg) | Where does the software run, and how does it survive failures? | Start at the public edge, enter the India primary region, compare both availability zones, then inspect disaster recovery. |
+| 8 | [Credit Health architecture](diagrams/credit-health-architecture.svg) | How do bureau retrieval, score snapshots, factors, actions, and corrections connect? | Follow consent into the bureau adapter, then the snapshot, explanation, action, event, and correction paths. |
 
 Every diagram also has an adjacent `.mmd` Mermaid source file. A reader can
 inspect or edit that text without using a drawing application.
@@ -5050,6 +5082,926 @@ Each should become an Architecture Decision Record (ADR).
 - automatic versus manual reconciliation
 
 These require explicit policy configuration and approval.
+
+---
+
+# Part II: Credit Health Management System
+
+This part explains the Credit Health borrower module as a production system. It
+extends the score surface observed in the supplied app recording with explicit
+source and freshness, factor diagnosis, a safe action plan, partner-delay
+handling, and correction tracking.
+
+The portfolio prototype covers only the borrower mobile UI. The domain APIs are
+channel-independent and can support a later responsive authenticated web client.
+
+## CH1. The System In One Sentence
+
+After purpose-specific consent, the system retrieves the latest score available
+from a licensed bureau, stores an immutable dated snapshot, converts governed
+reason codes into plain-language factors, proposes safe actions, and tracks any
+correction request without treating the score as a guaranteed lending decision.
+
+Three timestamps must stay separate:
+
+1. **Request time:** when the user asked super.money to refresh.
+2. **Retrieval time:** when super.money received a successful bureau response.
+3. **Bureau-file date:** when the underlying bureau file was last updated.
+
+"Real-time" means the app requests the latest data when asked. It does not mean
+the underlying credit file changes continuously.
+
+## CH2. Architecture Picture
+
+[Open the full-size Credit Health architecture](diagrams/credit-health-architecture.svg).
+[Open the editable Mermaid source](diagrams/credit-health-architecture.mmd).
+
+```mermaid
+flowchart TB
+    App[Borrower mobile app] --> BFF[Consumer BFF]
+    BFF --> Consent[Identity and Consent]
+    Consent --> Pull[Bureau Orchestrator]
+    Pull --> Adapter[Bureau Adapter]
+    Adapter <--> Bureau[Licensed CIC / Bureau]
+    Adapter --> Snapshot[Credit Profile Snapshot]
+    Snapshot --> Explain[Explanation Service]
+    Explain --> Actions[Action Plan Service]
+    Actions --> BFF
+    BFF --> App
+
+    App --> Case[Dispute and Case Service]
+    Case <--> Bureau
+
+    Pull --> Events[Outbox and Event Bus]
+    Snapshot --> Events
+    Actions --> Events
+    Case --> Events
+    Events --> Audit[Audit Store]
+    Events --> Notify[Notifications]
+    Events --> Analytics[Analytics]
+```
+
+### How to read the picture
+
+- The top path creates the dashboard.
+- The lower path handles correction.
+- The event path handles audit, notifications, and measurement.
+- Eligibility is intentionally outside the score path. A separately permitted
+  eligibility service may consume an approved, minimised signal; it cannot reuse
+  Credit Health consent silently.
+
+## CH3. Service Responsibility Summary
+
+| Service | What it owns | Main input | Main output | Calls |
+|---|---|---|---|---|
+| Consumer BFF | No legal score truth; response composition only | Authenticated app request | Mobile-shaped dashboard | Consent, Profile, Explanation, Actions, Cases |
+| Identity and Consent | Identity binding and purpose evidence | User, device, consent version | Consent ID and verified identity reference | Identity provider, Audit |
+| Bureau Orchestrator | Pull request state and retry policy | Consent ID, bureau, request ID | Pull status | Adapter, Snapshot, Event Bus |
+| Bureau Adapter | Partner-specific protocol mapping | Canonical pull request | Canonical bureau response | Licensed bureau |
+| Credit Profile Snapshot | Immutable score/report-derived snapshots | Canonical bureau response | Versioned score and factors | Explanation, Event Bus |
+| Explanation Service | Governed factor mapping | Snapshot and reason codes | Ranked plain-language factors | Configuration, Legal-approved content |
+| Action Plan Service | User action state | Factors, account context, safety rules | Three prioritised actions | Repayment projection, Notifications |
+| Dispute and Case Service | Correction lifecycle | Snapshot item, issue, evidence | Case ID, SLA, status | Bureau/furnisher adapter, Support |
+| Notification Service | Delivery attempts and preference checks | Refresh/case/action events | Push, email, or in-app status | Channel providers |
+| Analytics Pipeline | Product and safety measurement | De-identified events | Funnels, cohorts, reliability and fairness views | Warehouse |
+
+## CH4. Every Credit Health Service
+
+### CH4.1 Consumer BFF
+
+**What it does**
+
+- Gives the mobile app one stable Credit Health API.
+- Composes score, factors, action progress, and open correction cases.
+- Removes fields the client does not need.
+- Applies channel formatting such as display labels and available actions.
+
+**How it does it**
+
+1. Validates the authenticated user and app version.
+2. Calls domain services in parallel for read-only data.
+3. Applies a strict timeout to each dependency.
+4. Returns partial non-sensitive sections only when the response remains truthful.
+
+**Input**
+
+```json
+{
+  "authenticated_user_id": "usr_asha_001",
+  "locale": "en-IN",
+  "client": "android",
+  "app_version": "8.4.0"
+}
+```
+
+**Output**
+
+```json
+{
+  "snapshot": {
+    "score": 742,
+    "range": {"min": 300, "max": 900},
+    "bureau": "TRANSUNION_CIBIL",
+    "retrieved_at": "2026-07-26T08:35:00Z",
+    "bureau_file_date": "2026-07-20"
+  },
+  "factors": [],
+  "action_plan": [],
+  "open_cases": []
+}
+```
+
+**Links**
+
+It reads Identity/Consent status, Credit Profile, Explanation, Action Plan, and
+Case Service. It never calls a bureau directly.
+
+**Failure behavior**
+
+- Profile unavailable: show saved dated snapshot when policy permits.
+- Explanation unavailable: show score with "factors temporarily unavailable."
+- Action service unavailable: hide action mutation controls.
+- Case service unavailable: retain the user's entered draft locally and provide a
+  retry status; never claim a case was submitted.
+
+### CH4.2 Identity And Consent Service
+
+**What it does**
+
+- Binds the bureau request to the correct authenticated person.
+- Stores the exact purpose, document, language, timestamp, and consent decision.
+- Supports withdrawal for future pulls.
+
+**How it does it**
+
+1. Resolves the user's governed identity reference.
+2. Presents the current consent artifact.
+3. Hashes the rendered document and records acceptance.
+4. Issues a short-lived consent ID scoped to `CREDIT_HEALTH_BUREAU_PULL`.
+
+**Input**
+
+- User ID
+- Identity/KYC reference
+- Consent document version
+- Purpose
+- Locale
+- Device and session evidence
+
+**Output**
+
+- `consent_id`
+- `purpose`
+- `status`
+- `granted_at`
+- `expires_at`
+- immutable audit reference
+
+**Links**
+
+The Bureau Orchestrator requires this consent ID. The Audit Store receives an
+append-only consent event. Eligibility must request its own approved purpose.
+
+**Failure behavior**
+
+An expired, withdrawn, mismatched, or missing consent stops the pull before any
+bureau call.
+
+### CH4.3 Bureau Orchestrator
+
+**What it does**
+
+- Owns the lifecycle of one refresh request.
+- Deduplicates taps and controls retries.
+- Chooses the configured bureau adapter.
+- Distinguishes success, no-file, mismatch, timeout, and partner error.
+
+**How it does it**
+
+```text
+REQUESTED
+  -> IDENTITY_VERIFIED
+  -> CONSENT_VALIDATED
+  -> PARTNER_PENDING
+  -> SUCCEEDED | NO_FILE | IDENTITY_MISMATCH | TIMED_OUT | FAILED
+```
+
+Every request has an idempotency key such as
+`credit_pull:user_id:consent_id:calendar_day`. Repeated taps return the same
+accepted request while it is running.
+
+**Input**
+
+- User ID
+- Consent ID
+- Bureau code
+- Refresh reason
+- Idempotency key
+
+**Output**
+
+- Pull request ID
+- Current status
+- Retry-after hint
+- Snapshot ID on success
+- Governed user-facing error code
+
+**Links**
+
+It calls Consent, Bureau Adapter, Snapshot, Event Bus, and Audit.
+
+**Failure behavior**
+
+- Partner timeout: stop synchronous retries, retain saved snapshot, schedule a
+  bounded asynchronous retry, and offer notification.
+- Unknown partner result: mark `OUTCOME_UNKNOWN` internally and reconcile before
+  another billable pull.
+- Repeated outage: open the circuit breaker and disable refresh behind a feature
+  flag while preserving dated reads.
+
+### CH4.4 Bureau Adapter
+
+**What it does**
+
+- Hides bureau-specific authentication, request, response, and error formats.
+- Converts a partner response into one canonical internal schema.
+- Validates score range, response signatures, dates, and reason-code shape.
+
+**How it does it**
+
+```text
+Canonical request
+  -> bureau-specific payload
+  -> encrypted authenticated partner call
+  -> partner response verification
+  -> canonical response
+```
+
+**Input**
+
+```json
+{
+  "request_id": "cpr_260726_1842",
+  "identity_reference": "idref_tokenised_91",
+  "consent_reference": "con_ch_60184",
+  "requested_product": "SCORE_AND_FACTORS"
+}
+```
+
+**Output**
+
+```json
+{
+  "partner_reference": "cic_884126",
+  "match_status": "MATCHED",
+  "score": 742,
+  "score_model": "CIBIL_SCORE",
+  "range_min": 300,
+  "range_max": 900,
+  "bureau_file_date": "2026-07-20",
+  "reason_codes": ["UTILISATION_HIGH", "HISTORY_YOUNG"],
+  "received_at": "2026-07-26T08:35:00Z"
+}
+```
+
+**Links**
+
+Only the Orchestrator calls the adapter. The adapter calls the external licensed
+bureau. Domain services never import a partner SDK directly.
+
+**Failure behavior**
+
+Malformed, unsigned, out-of-range, or schema-incompatible responses are rejected
+and quarantined. They do not overwrite a valid snapshot.
+
+### CH4.5 Credit Profile Snapshot Service
+
+**What it does**
+
+- Stores an immutable version of each successful score response.
+- Keeps score histories separated by bureau and score model.
+- Exposes only governed report-derived attributes needed by downstream services.
+
+**How it does it**
+
+1. Deduplicates by partner response ID and content hash.
+2. Encrypts the canonical payload.
+3. Writes the snapshot and outbox event in one database transaction.
+4. Marks the newest successful snapshot for that bureau/model.
+
+**Input**
+
+Canonical bureau response.
+
+**Output**
+
+- Snapshot ID
+- Score, model, range, retrieval time, file date
+- Normalised reason codes
+- Governed derived attributes
+- `CreditScoreSnapshotCreated` event
+
+**Links**
+
+Explanation and Action Plan read the snapshot. Analytics receives minimised
+events. Eligibility can receive a separately approved projection rather than the
+raw report.
+
+**Failure behavior**
+
+A storage failure prevents success from being shown. The orchestrator records
+that the partner responded but persistence is unresolved, then reconciliation
+recovers the response securely.
+
+### CH4.6 Explanation Service
+
+**What it does**
+
+- Maps bureau reason codes and verified attributes into ranked explanations.
+- Separates helping, attention, and developing factors.
+- Maintains plain-language, regional, and model-version-specific content.
+
+**How it does it**
+
+```text
+reason code + model version + attribute evidence
+  -> approved mapping rule
+  -> explanation template
+  -> safety and legal checks
+  -> ranked factor
+```
+
+Each mapping has:
+
+- Supported bureau/model versions
+- Evidence requirement
+- Display priority
+- "What we observed"
+- "Why it can matter"
+- Safe action
+- Expected reporting horizon
+- Legal/content approval version
+
+**Input**
+
+Snapshot ID, reason codes, model version, locale.
+
+**Output**
+
+Ranked factor objects with evidence and content version.
+
+**Links**
+
+It reads Profile Snapshot and governed configuration. It feeds Consumer BFF and
+Action Plan.
+
+**Failure behavior**
+
+An unknown reason code is logged for review and omitted from advice. The service
+does not invent an explanation from the numeric score.
+
+### CH4.7 Action Plan Service
+
+**What it does**
+
+- Selects at most three relevant and safe next actions.
+- Stores user progress independently from the bureau snapshot.
+- Avoids guaranteed score movement or approval promises.
+
+**How it does it**
+
+Candidate actions are filtered through:
+
+1. Evidence exists in the current snapshot.
+2. The advice is permitted for the region and product.
+3. The action does not require new borrowing merely to change a score.
+4. The action is relevant and non-duplicative.
+5. A time horizon and uncertainty statement are available.
+
+**Input**
+
+- Explained factors
+- Existing repayment/AutoPay state
+- Region and content policy
+- User-dismissed and completed actions
+
+**Output**
+
+- Three ordered actions
+- Priority and rationale
+- Honest timing
+- Safety language
+- Progress state
+
+**Links**
+
+Reads Explanation and a minimised repayment projection. Publishes action events
+to Notification and Analytics.
+
+**Failure behavior**
+
+If no governed action is suitable, return education only. Empty advice is safer
+than speculative advice.
+
+### CH4.8 Dispute And Case Service
+
+**What it does**
+
+- Tracks a user's claim that bureau or report information is inaccurate.
+- Owns case state, SLA, evidence references, partner updates, and support owner.
+- Keeps correction separate from a normal customer-support chat.
+
+**How it does it**
+
+```text
+DRAFT
+  -> SUBMITTED
+  -> PARTNER_ACKNOWLEDGED
+  -> UNDER_VERIFICATION
+  -> CORRECTED | UPHELD | MORE_INFORMATION_REQUIRED | CLOSED
+```
+
+**Input**
+
+- Snapshot ID and disputed field/account reference
+- Issue category
+- User statement
+- Optional governed evidence reference
+- Consent to share with the appropriate bureau/furnisher
+
+**Output**
+
+- Case ID
+- Submitted and expected-response dates
+- Current owner and status
+- Partner reference
+- Resolution and refreshed snapshot reference
+
+**Links**
+
+Calls the bureau/furnisher correction adapter and Support. Publishes case events
+to Notifications, Audit, and Analytics.
+
+**Failure behavior**
+
+If partner submission fails, the case stays `SUBMISSION_PENDING`. The UI must not
+display "partner verification" until acknowledgement exists.
+
+### CH4.9 Notification Service
+
+**What it does**
+
+- Sends score-refresh, action, and correction updates.
+- Applies channel preference, quiet hours, frequency caps, and regulated copy.
+
+**Input**
+
+Events such as `CreditPullCompleted`, `CreditPullDelayed`,
+`ActionReminderDue`, and `CorrectionStatusChanged`.
+
+**Output**
+
+Delivery record, provider response, and in-app notification.
+
+**Links**
+
+Consumes Event Bus; reads notification preferences; calls approved providers.
+
+**Failure behavior**
+
+Retries use bounded backoff. A failed notification never changes the underlying
+score, action, or correction state.
+
+### CH4.10 Analytics Pipeline
+
+**What it does**
+
+- Measures retrieval reliability, comprehension, progress, partner cost,
+  correction outcomes, retention, safety, and segment fairness.
+
+**Input**
+
+Minimised events with pseudonymous user, experiment, source, and status fields.
+
+**Output**
+
+- Credit Health funnel
+- Partner reliability dashboard
+- Action and correction cohorts
+- Complaint and consent guardrails
+- Segment-level access and outcome monitoring
+
+**Links**
+
+Consumes Event Bus and joins only approved dimensions in the warehouse.
+
+**Failure behavior**
+
+Analytics loss does not block user requests. Data-quality checks identify missing
+or duplicate events before decisions use the metric.
+
+## CH5. Direct Service Links
+
+| Caller | Callee | Why | Synchronous? |
+|---|---|---|---|
+| Mobile app | Consumer BFF | One authenticated client contract | Yes |
+| Consumer BFF | Consent | Read consent state or create session | Yes |
+| Consumer BFF | Bureau Orchestrator | Start/read refresh | Yes |
+| Bureau Orchestrator | Bureau Adapter | Retrieve latest available file | Yes with timeout |
+| Bureau Adapter | Licensed bureau | External score/report request | Yes with timeout |
+| Bureau Orchestrator | Snapshot | Persist successful canonical response | Yes |
+| Consumer BFF | Snapshot | Read current/history | Yes |
+| Consumer BFF | Explanation | Read ranked factors | Yes |
+| Consumer BFF | Action Plan | Read/update actions | Yes |
+| Consumer BFF | Case | Submit/read correction | Yes |
+| Domain services | Event Bus | Publish committed facts | Asynchronous via outbox |
+| Event Bus | Audit/Notification/Analytics | Evidence, communication, measurement | Asynchronous |
+
+Beginner rule:
+
+> A user-facing write returns success only after its owning service commits the
+> state. Emails, analytics, and most secondary effects happen from events later.
+
+## CH6. API Architecture
+
+All endpoints use authenticated user identity, `X-Request-Id`, and write
+endpoints use `Idempotency-Key`.
+
+| Method | Endpoint | Owner | Purpose |
+|---|---|---|---|
+| `POST` | `/v1/credit-health/consent-sessions` | Consent | Create purpose-specific consent |
+| `POST` | `/v1/credit-health/pulls` | Bureau Orchestrator | Start latest-available pull |
+| `GET` | `/v1/credit-health/pulls/{pull_id}` | Bureau Orchestrator | Poll accepted/pending pull |
+| `GET` | `/v1/credit-health/dashboard` | Consumer BFF | Compose current dashboard |
+| `GET` | `/v1/credit-health/snapshots` | Snapshot | List dated history |
+| `GET` | `/v1/credit-health/factors/{factor_id}` | Explanation | Read factor evidence and advice |
+| `PATCH` | `/v1/credit-health/actions/{action_id}` | Action Plan | Start, complete, or dismiss action |
+| `POST` | `/v1/credit-health/corrections` | Case | Open tracked correction |
+| `GET` | `/v1/credit-health/corrections/{case_id}` | Case | Read correction status |
+
+### CH6.1 Start a pull
+
+Request:
+
+```http
+POST /v1/credit-health/pulls HTTP/1.1
+Authorization: Bearer <access-token>
+Idempotency-Key: ch-pull-asha-2026-07-26
+Content-Type: application/json
+
+{
+  "consent_id": "con_ch_60184",
+  "bureau": "TRANSUNION_CIBIL",
+  "reason": "USER_REQUESTED_REFRESH"
+}
+```
+
+Accepted response:
+
+```json
+{
+  "data": {
+    "pull_id": "cpr_260726_1842",
+    "status": "PARTNER_PENDING",
+    "poll_after_ms": 800
+  },
+  "meta": {
+    "request_id": "req_901"
+  }
+}
+```
+
+Successful status:
+
+```json
+{
+  "data": {
+    "pull_id": "cpr_260726_1842",
+    "status": "SUCCEEDED",
+    "snapshot_id": "chs_742_20260726",
+    "retrieved_at": "2026-07-26T08:35:00Z",
+    "bureau_file_date": "2026-07-20"
+  }
+}
+```
+
+Delayed status:
+
+```json
+{
+  "data": {
+    "pull_id": "cpr_260726_1842",
+    "status": "TIMED_OUT",
+    "saved_snapshot_id": "chs_742_20260726",
+    "retry_mode": "ASYNC_BOUNDED",
+    "notification_available": true
+  }
+}
+```
+
+### CH6.2 Open a correction
+
+```http
+POST /v1/credit-health/corrections HTTP/1.1
+Authorization: Bearer <access-token>
+Idempotency-Key: correction-asha-payment-20260726
+Content-Type: application/json
+
+{
+  "snapshot_id": "chs_742_20260726",
+  "issue_type": "PAYMENT_STATUS_INCORRECT",
+  "subject_reference": "acct_token_92",
+  "statement": "Payment was made before the due date."
+}
+```
+
+```json
+{
+  "data": {
+    "case_id": "CH-260726-1842",
+    "status": "SUBMITTED",
+    "submitted_at": "2026-07-26T08:42:00Z",
+    "expected_process": "Applicable bureau/furnisher correction process"
+  }
+}
+```
+
+## CH7. Main Runtime Sequences
+
+### CH7.1 Successful refresh
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant B as Consumer BFF
+    participant C as Consent
+    participant O as Bureau Orchestrator
+    participant A as Bureau Adapter
+    participant P as Credit Profile
+    participant E as Explanation
+    participant X as Action Plan
+
+    U->>B: Accept purpose consent
+    B->>C: Store consent evidence
+    C-->>B: consent_id
+    U->>B: Get latest score
+    B->>O: Start pull with consent_id
+    O->>A: Canonical bureau request
+    A-->>O: Signed canonical response
+    O->>P: Persist immutable snapshot
+    P-->>O: snapshot_id
+    B->>E: Explain snapshot
+    B->>X: Build/read action plan
+    B-->>U: Score + freshness + factors + actions
+```
+
+### CH7.2 Partner delay
+
+```text
+User taps refresh
+  -> request accepted
+  -> partner exceeds synchronous timeout
+  -> orchestrator records TIMED_OUT
+  -> last valid dated snapshot remains current
+  -> UI explains that no new result was received
+  -> bounded background retry may continue
+  -> user can opt into notification
+  -> timeout is never interpreted as a score change
+```
+
+### CH7.3 No file
+
+`NO_FILE` is a valid partner outcome, not a system error. The UI explains that
+the bureau may lack enough matched history, avoids calling it a low score, and
+offers identity confirmation and safe credit-building education.
+
+### CH7.4 Correction
+
+```text
+User selects snapshot item
+  -> Case Service stores SUBMITTED
+  -> outbox publishes CorrectionSubmitted
+  -> partner adapter submits correction
+  -> acknowledgement changes case to PARTNER_ACKNOWLEDGED
+  -> partner/furnisher verifies
+  -> outcome event creates status update
+  -> a corrected bureau file requires a new labelled snapshot
+```
+
+## CH8. Credit Health Data Model
+
+### CH8.1 `credit_score_snapshots`
+
+```sql
+CREATE TABLE credit_score_snapshots (
+  snapshot_id           UUID PRIMARY KEY,
+  user_id               UUID NOT NULL,
+  bureau_code           TEXT NOT NULL,
+  score_model           TEXT NOT NULL,
+  score_value           SMALLINT NOT NULL,
+  range_min             SMALLINT NOT NULL,
+  range_max             SMALLINT NOT NULL,
+  bureau_file_date      DATE,
+  retrieved_at          TIMESTAMPTZ NOT NULL,
+  partner_reference     TEXT NOT NULL,
+  canonical_hash        TEXT NOT NULL,
+  encrypted_payload_ref TEXT NOT NULL,
+  created_at            TIMESTAMPTZ NOT NULL,
+  UNIQUE (bureau_code, partner_reference)
+);
+```
+
+### CH8.2 `credit_score_factors`
+
+```sql
+CREATE TABLE credit_score_factors (
+  factor_id              UUID PRIMARY KEY,
+  snapshot_id            UUID NOT NULL REFERENCES credit_score_snapshots,
+  reason_code            TEXT NOT NULL,
+  tone                    TEXT NOT NULL,
+  rank                    SMALLINT NOT NULL,
+  evidence_json           JSONB NOT NULL,
+  content_version         TEXT NOT NULL,
+  explanation_locale      TEXT NOT NULL,
+  created_at              TIMESTAMPTZ NOT NULL
+);
+```
+
+### CH8.3 `credit_action_items`
+
+```sql
+CREATE TABLE credit_action_items (
+  action_id               UUID PRIMARY KEY,
+  user_id                 UUID NOT NULL,
+  source_snapshot_id      UUID NOT NULL REFERENCES credit_score_snapshots,
+  action_type             TEXT NOT NULL,
+  priority                SMALLINT NOT NULL,
+  status                  TEXT NOT NULL,
+  safety_policy_version   TEXT NOT NULL,
+  started_at              TIMESTAMPTZ,
+  completed_at            TIMESTAMPTZ,
+  updated_at              TIMESTAMPTZ NOT NULL
+);
+```
+
+### CH8.4 `credit_correction_cases`
+
+```sql
+CREATE TABLE credit_correction_cases (
+  case_id                 UUID PRIMARY KEY,
+  public_case_reference   TEXT NOT NULL UNIQUE,
+  user_id                 UUID NOT NULL,
+  snapshot_id             UUID NOT NULL REFERENCES credit_score_snapshots,
+  issue_type              TEXT NOT NULL,
+  subject_reference       TEXT,
+  statement_ciphertext    TEXT NOT NULL,
+  status                  TEXT NOT NULL,
+  partner_reference       TEXT,
+  expected_by             TIMESTAMPTZ,
+  submitted_at            TIMESTAMPTZ NOT NULL,
+  resolved_at             TIMESTAMPTZ,
+  version                 INTEGER NOT NULL DEFAULT 1
+);
+```
+
+## CH9. Events
+
+| Event | Producer | Important consumers |
+|---|---|---|
+| `CreditPullRequested` | Bureau Orchestrator | Audit, Analytics |
+| `CreditPullCompleted` | Bureau Orchestrator | Notification, Analytics |
+| `CreditPullDelayed` | Bureau Orchestrator | Notification, Partner Operations |
+| `CreditScoreSnapshotCreated` | Profile Snapshot | Explanation, Analytics |
+| `CreditHealthActionStarted` | Action Plan | Notification, Analytics |
+| `CorrectionSubmitted` | Case Service | Partner Adapter, Audit |
+| `CorrectionAcknowledged` | Case Service | Notification, Support |
+| `CorrectionResolved` | Case Service | Notification, Profile Refresh, Analytics |
+
+Every event includes:
+
+- `event_id`
+- `event_type`
+- `event_version`
+- `occurred_at`
+- `aggregate_id`
+- `correlation_id`
+- `causation_id`
+- minimised payload
+
+Consumers deduplicate by `event_id`.
+
+## CH10. Security, Privacy, And Compliance Boundaries
+
+1. Encrypt bureau payloads and user statements with restricted keys.
+2. Store tokenised identity references; avoid spreading raw identifiers.
+3. Never log scores, account details, consent documents, or correction text.
+4. Separate Credit Health consent from credit-application and commerce consent.
+5. Record the displayed source, range, model, retrieval time, and file date.
+6. Keep a versioned mapping from reason code to displayed explanation.
+7. Restrict raw bureau access to a narrowly approved operational role.
+8. Audit every score read and every correction-state mutation.
+9. Apply retention and deletion policy by data class and applicable law.
+10. Review action content for harm, misleading guarantees, and discriminatory
+    outcomes.
+
+### Credit Health to eligibility boundary
+
+```text
+Credit Health purpose
+  -> show and explain bureau information
+  -> user may leave without applying
+
+Credit eligibility purpose
+  -> separate application or pre-approved-offer basis
+  -> lender-approved policy and permitted data
+  -> independent decision and adverse/rejection handling
+```
+
+The shopping-limit bridge tells the user that the score is one input. It does
+not pass an interactive Credit Health session directly into a lending decision.
+
+## CH11. Reliability And Partner Operations
+
+### Suggested indicators
+
+- Bureau pull acceptance rate
+- p50/p95/p99 pull latency
+- Successful retrieval rate
+- Timeout and unknown-outcome rate
+- No-file and identity-mismatch rate
+- Snapshot persistence success
+- Explanation coverage by reason code
+- Correction partner acknowledgement time
+- Correction resolution time
+- Cost per successful pull
+
+### Suggested controls
+
+- Partner timeout budget
+- Circuit breaker
+- Bounded retry with jitter
+- Request deduplication
+- Dated snapshot fallback
+- Schema contract tests
+- Partner simulator
+- Feature flag and regional kill switch
+- Reconciliation for unknown outcomes
+- Operational queue for cases approaching SLA
+
+### Three runbooks
+
+**Partner timeout**
+
+1. Verify circuit-breaker and partner health.
+2. Stop repeated synchronous calls.
+3. Preserve the last valid snapshot.
+4. Schedule bounded retry.
+5. Notify opted-in users only after a new successful result.
+
+**Malformed response**
+
+1. Quarantine payload with restricted access.
+2. Do not overwrite current snapshot.
+3. Compare partner schema version.
+4. Escalate to partner and disable incompatible adapter version.
+
+**Correction acknowledgement missing**
+
+1. Keep case in `SUBMISSION_PENDING`.
+2. Retry idempotently using the same partner case key.
+3. Escalate before internal SLA.
+4. Keep the user-facing status accurate.
+
+## CH12. Prototype-To-Code Map
+
+| Prototype responsibility | Current code | Production owner |
+|---|---|---|
+| Profile/Credit Centre entry | `ProfileScreen` in `prototype/src/main.jsx` | Mobile navigation and Consumer BFF |
+| Purpose consent | `CreditHealthConsent` | Consent Service |
+| Pull progress | `CreditHealthLoading` | Bureau Orchestrator |
+| Score, source, freshness | `CreditScoreDashboard` | Profile Snapshot + Consumer BFF |
+| Factors | `CreditFactorDetail` | Explanation Service |
+| Three-action plan | `CreditActionPlan` | Action Plan Service |
+| Thin/no-file education | `NoScoreInfo` | Orchestrator outcome + governed content |
+| Partner delay fallback | `CreditDataDelay` | Orchestrator + Snapshot |
+| Correction submission | `CreditDispute` | Case Service |
+| Correction tracking | `DisputeSuccess` | Case Service + Notifications |
+
+The React code uses local state and timers. It demonstrates state transitions and
+content hierarchy; it does not make bureau calls or store production data.
+
+## CH13. Implementation Sequence
+
+1. Define canonical score, factor, consent, pull, and correction contracts.
+2. Build a deterministic bureau simulator for success, no-file, mismatch, delay,
+   malformed response, and correction.
+3. Implement Identity/Consent and the Bureau Orchestrator state machine.
+4. Implement one adapter and immutable snapshots.
+5. Add governed explanation mapping and contract tests.
+6. Add action policy, progress, and safety review.
+7. Add correction case tracking and support operations.
+8. Add notifications, analytics, audit, and reliability dashboards.
+9. Run employee alpha, invite beta, 5% rollout, then progressive launch gates.
 
 ---
 

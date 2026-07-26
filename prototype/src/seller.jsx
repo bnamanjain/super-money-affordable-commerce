@@ -13,26 +13,33 @@ import {
   Box,
   CalendarDays,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
   CircleHelp,
-  IndianRupee,
   ClipboardCheck,
+  Code2,
   Download,
   ExternalLink,
   FileCheck2,
   Filter,
   Gift,
+  Globe2,
+  IndianRupee,
   Info,
+  KeyRound,
   LayoutDashboard,
+  Link2,
   ListFilter,
   Menu,
   MoreHorizontal,
   PackageCheck,
   PanelLeftClose,
+  Play,
   Plus,
   RefreshCcw,
   Search,
+  Server,
   Settings,
   ShieldCheck,
   SlidersHorizontal,
@@ -57,6 +64,7 @@ const navItems = [
   { id: "orders", label: "Orders", icon: PackageCheck, badge: "12" },
   { id: "settlements", label: "Settlements", icon: Banknote },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "integrations", label: "Channels & APIs", icon: Code2 },
 ];
 
 const pageContext = {
@@ -95,6 +103,12 @@ const pageContext = {
     subtitle: "Financed cohort · last 90 days",
     question: "Is financed GMV repeatable after returns, incentives, and credit loss?",
     connection: "Conversion + repayment + repeat → durable P&L",
+  },
+  integrations: {
+    title: "Channels & APIs",
+    subtitle: "Splitstore live · Merchant checkout sandbox",
+    question: "Can one affordability engine power in-app and white-label commerce?",
+    connection: "Merchant channel → shared eligibility → checkout → webhooks",
   },
 };
 
@@ -180,6 +194,7 @@ function SellerHeader({
   onCreateOffer,
   onAddProduct,
   onOpenMobile,
+  onOpenDocs,
   onMenu,
 }) {
   const context = pageContext[active];
@@ -209,6 +224,10 @@ function SellerHeader({
           {active === "catalogue" ? (
             <button className="primary-button" onClick={onAddProduct}>
               <Plus size={17} /> Add product
+            </button>
+          ) : active === "integrations" ? (
+            <button className="primary-button" onClick={onOpenDocs}>
+              <Code2 size={17} /> API reference
             </button>
           ) : (
             <button className="primary-button" onClick={onCreateOffer}>
@@ -266,10 +285,10 @@ function OverviewPage({ onNavigate }) {
     <div className="seller-page">
       <div className="metrics-grid">
         <MetricCard
-          label="Financed GMV"
-          value="₹2.81 Cr"
-          change="+18.4%"
-          detail="vs previous 30 days"
+          label="Monthly repeat buyers"
+          value="8,420"
+          change="+14.8%"
+          detail="returning commerce buyers"
           icon={WalletCards}
         />
         <MetricCard
@@ -282,7 +301,7 @@ function OverviewPage({ onNavigate }) {
         />
         <MetricCard
           label="Average order value"
-          value="₹3,486"
+          value="₹7,700"
           change="+21.6%"
           detail="financed vs UPI"
           icon={IndianRupee}
@@ -290,9 +309,9 @@ function OverviewPage({ onNavigate }) {
         />
         <MetricCard
           label="Contribution"
-          value="₹4.78 L"
+          value="₹7.56 L"
           change="+14.2%"
-          detail="1.70% of financed GMV"
+          detail="0.91% of financed GMV"
           icon={BarChart3}
           tone="mint"
         />
@@ -303,18 +322,18 @@ function OverviewPage({ onNavigate }) {
           <div className="panel-header">
             <div>
               <p className="panel-eyebrow">North Star</p>
-              <h2>Contribution-positive financed GMV</h2>
+              <h2>Monthly repeat commerce buyers</h2>
             </div>
             <button>Last 30 days <ChevronDown size={15} /></button>
           </div>
           <div className="gmv-summary">
             <div>
-              <strong>₹2.81 Cr</strong>
-              <span><ArrowUpRight size={14} /> 18.4%</span>
+              <strong>8,420</strong>
+              <span><ArrowUpRight size={14} /> 14.8%</span>
             </div>
             <p>
-              <i className="legend-financed" /> Financed GMV
-              <i className="legend-upi" /> Full UPI
+              <i className="legend-financed" /> Repeat buyers
+              <i className="legend-upi" /> First-time buyers
             </p>
           </div>
           <MiniBarChart />
@@ -331,15 +350,15 @@ function OverviewPage({ onNavigate }) {
           <div className="economics-total">
             <div>
               <span>Net contribution</span>
-              <strong>₹59</strong>
+              <strong>₹70</strong>
             </div>
-            <b>1.7%</b>
+            <b>0.91%</b>
           </div>
           <div className="waterfall">
-            <div><span>Merchant fee</span><i style={{ width: "72%" }} /><strong>+₹52</strong></div>
-            <div><span>Lender revenue</span><i style={{ width: "48%" }} /><strong>+₹35</strong></div>
-            <div><span>Seller funding</span><i style={{ width: "48%" }} /><strong>+₹35</strong></div>
-            <div className="cost"><span>Variable costs</span><i style={{ width: "85%" }} /><strong>−₹63</strong></div>
+            <div><span>Merchant fee</span><i style={{ width: "78%" }} /><strong>+₹139</strong></div>
+            <div><span>Lender revenue</span><i style={{ width: "52%" }} /><strong>+₹92</strong></div>
+            <div><span>Payment + affiliate</span><i style={{ width: "18%" }} /><strong>+₹15</strong></div>
+            <div className="cost"><span>Variable costs</span><i style={{ width: "92%" }} /><strong>−₹176</strong></div>
           </div>
           <p className="panel-note"><ShieldCheck size={15} /> Net of incentives, payment cost, fraud, and expected credit loss share.</p>
         </section>
@@ -356,11 +375,12 @@ function OverviewPage({ onNavigate }) {
           </div>
           <div className="funnel-rows">
             {[
-              ["Product views", "184,240", 100, ""],
-              ["Checkout starts", "22,934", 72, "12.4%"],
-              ["Credit approved", "18,812", 59, "82.0%"],
-              ["Mandate success", "17,608", 52, "93.6%"],
-              ["Orders placed", "16,046", 47, "91.1%"],
+              ["Store visits", "184,240", 100, ""],
+              ["Product views", "57,610", 83, "31.3%"],
+              ["Added to bag", "20,105", 67, "34.9%"],
+              ["Checkout starts", "15,481", 57, "77.0%"],
+              ["Offer selected", "12,911", 49, "83.4%"],
+              ["Orders placed", "11,204", 43, "86.8%"],
             ].map(([label, value, width, rate]) => (
               <div key={label}>
                 <span>{label}</span>
@@ -854,10 +874,10 @@ function SettlementsPage({ onToast }) {
 
 function AnalyticsPage() {
   const cohorts = [
-    ["Apr 2026", "8.1%", "₹3,284", "21.8%", "1.9%", "1.42%", "₹54"],
-    ["May 2026", "8.4%", "₹3,396", "23.1%", "1.8%", "1.35%", "₹57"],
-    ["Jun 2026", "8.7%", "₹3,486", "24.6%", "1.7%", "1.28%", "₹59"],
-    ["Jul 2026", "9.0%", "₹3,542", "—", "1.6%", "1.21%", "₹62"],
+    ["Apr 2026", "8.1%", "₹7,120", "21.8%", "1.9%", "1.42%", "₹55"],
+    ["May 2026", "8.4%", "₹7,410", "23.1%", "1.8%", "1.35%", "₹62"],
+    ["Jun 2026", "8.7%", "₹7,700", "24.6%", "1.7%", "1.28%", "₹70"],
+    ["Jul 2026", "9.0%", "₹7,840", "—", "1.6%", "1.21%", "₹74"],
   ];
   return (
     <div className="seller-page">
@@ -925,6 +945,191 @@ function AnalyticsPage() {
           <span className="quadrant-label bottom-left">Fix economics</span>
         </div>
       </section>
+    </div>
+  );
+}
+
+function IntegrationsPage({ onToast }) {
+  const [mode, setMode] = useState("sandbox");
+  const [testState, setTestState] = useState("idle");
+
+  const runTest = () => {
+    if (testState === "running") return;
+    setTestState("running");
+    window.setTimeout(() => setTestState("passed"), 900);
+  };
+
+  return (
+    <div className="seller-page integrations-page">
+      <section className="integration-readiness">
+        <div>
+          <p>Merchant launch readiness</p>
+          <strong>4 of 4 checks complete</strong>
+          <span>ValueKart can sell inside Splitstore and test external checkout.</span>
+        </div>
+        <i><b style={{ width: "100%" }} /></i>
+        {[
+          ["KYB approved", "18 Jul", ShieldCheck],
+          ["Settlement account", "Verified", Banknote],
+          ["Catalogue feed", "Healthy", Link2],
+          ["Signed webhooks", "Verified", Server],
+        ].map(([label, value, Icon]) => (
+          <article key={label}>
+            <span><Icon size={18} /></span>
+            <div><strong>{label}</strong><small>{value}</small></div>
+            <CheckCircle2 size={17} />
+          </article>
+        ))}
+      </section>
+
+      <div className="channel-grid">
+        <section className="dashboard-panel channel-card">
+          <div className="channel-card-heading">
+            <span><Store size={21} /></span>
+            <div>
+              <p>Channel 1</p>
+              <h2>Splitstore marketplace</h2>
+            </div>
+            <b className="status-positive">Live</b>
+          </div>
+          <p>
+            Eligible products are discovered and purchased inside the super.money
+            borrower app.
+          </p>
+          <dl>
+            <div><dt>Live SKUs</dt><dd>3</dd></div>
+            <div><dt>30-day orders</dt><dd>11,204</dd></div>
+            <div><dt>Feed freshness</dt><dd>4 min</dd></div>
+          </dl>
+          <button onClick={() => onToast("Splitstore channel settings opened")}>
+            Manage channel <ChevronRight size={16} />
+          </button>
+        </section>
+
+        <section className="dashboard-panel channel-card external-channel">
+          <div className="channel-card-heading">
+            <span><Globe2 size={21} /></span>
+            <div>
+              <p>Channel 2</p>
+              <h2>Merchant checkout</h2>
+            </div>
+            <b className="status-scheduled">Sandbox</b>
+          </div>
+          <p>
+            ValueKart can place a super.money affordability option on its own
+            product and checkout pages.
+          </p>
+          <dl>
+            <div><dt>Domain</dt><dd>valuekart.in</dd></div>
+            <div><dt>SDK</dt><dd>Web v1.4</dd></div>
+            <div><dt>Last test</dt><dd>{testState === "passed" ? "Passed now" : "24 Jul"}</dd></div>
+          </dl>
+          <button onClick={runTest} disabled={testState === "running"}>
+            {testState === "running" ? <span className="button-spinner dark" /> : <Play size={15} />}
+            {testState === "running" ? "Running test…" : testState === "passed" ? "Run again" : "Run test checkout"}
+          </button>
+        </section>
+      </div>
+
+      <section className="dashboard-panel white-label-flow">
+        <div className="panel-header">
+          <div>
+            <p className="panel-eyebrow">White-label affordability</p>
+            <h2>One merchant session, one shared decision path</h2>
+          </div>
+          <div className="environment-control" role="group" aria-label="API environment">
+            {["sandbox", "live"].map((item) => (
+              <button
+                key={item}
+                className={mode === item ? "active" : ""}
+                onClick={() => setMode(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="integration-flow" aria-label="Merchant checkout integration flow">
+          {[
+            [Globe2, "Merchant PDP", "₹24,999 or ₹2,199/mo"],
+            [Code2, "Commerce API", "Create signed session"],
+            [ShieldCheck, "Eligibility", "User consent + policy"],
+            [WalletCards, "Offer", "KFS + payment plan"],
+            [PackageCheck, "Order webhook", "One final status"],
+          ].map(([Icon, title, detail], index) => (
+            <React.Fragment key={title}>
+              <div>
+                <span><Icon size={19} /></span>
+                <strong>{title}</strong>
+                <small>{detail}</small>
+              </div>
+              {index < 4 && <ChevronRight size={18} />}
+            </React.Fragment>
+          ))}
+        </div>
+      </section>
+
+      <div className="integration-workspace">
+        <section className="dashboard-panel api-contract-panel">
+          <div className="panel-header">
+            <div>
+              <p className="panel-eyebrow">Server-to-server contract</p>
+              <h2>Checkout API</h2>
+            </div>
+            <button onClick={() => onToast("Sandbox API key copied")}>
+              <KeyRound size={15} /> Copy test key
+            </button>
+          </div>
+          <div className="endpoint-list">
+            {[
+              ["POST", "/v1/merchant-sessions", "Create a signed checkout session"],
+              ["GET", "/v1/merchant-sessions/{id}/offers", "Return approved customer plans"],
+              ["POST", "/v1/merchant-sessions/{id}/confirm", "Confirm consent, payment, and order"],
+              ["POST", "/v1/refunds", "Reconcile full or partial refund"],
+            ].map(([method, path, detail]) => (
+              <div key={path}>
+                <span>{method}</span>
+                <code>{path}</code>
+                <small>{detail}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="dashboard-panel webhook-panel">
+          <div className="panel-header">
+            <div>
+              <p className="panel-eyebrow">Operational contract</p>
+              <h2>Webhook health</h2>
+            </div>
+            <span className="status-positive">99.98%</span>
+          </div>
+          <div className="webhook-destination">
+            <Server size={18} />
+            <div>
+              <span>Destination</span>
+              <code>https://api.valuekart.in/supermoney/events</code>
+            </div>
+          </div>
+          <div className="webhook-events">
+            {[
+              ["checkout.completed", "200", "184 ms"],
+              ["order.updated", "200", "211 ms"],
+              ["refund.adjusted", "200", "196 ms"],
+              ["settlement.completed", "200", "228 ms"],
+            ].map(([event, status, latency]) => (
+              <div key={event}>
+                <code>{event}</code>
+                <span>{status}</span>
+                <small>{latency}</small>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => onToast("Test webhook delivered successfully")}>
+            Send test webhook <ChevronRight size={15} />
+          </button>
+        </section>
+      </div>
     </div>
   );
 }
@@ -1033,7 +1238,8 @@ export default function SellerPortal() {
     if (active === "offers") return <OffersPage onToast={showToast} />;
     if (active === "orders") return <OrdersPage onToast={showToast} />;
     if (active === "settlements") return <SettlementsPage onToast={showToast} />;
-    return <AnalyticsPage />;
+    if (active === "analytics") return <AnalyticsPage />;
+    return <IntegrationsPage onToast={showToast} />;
   };
 
   return (
@@ -1050,6 +1256,7 @@ export default function SellerPortal() {
           onCreateOffer={() => setOfferOpen(true)}
           onAddProduct={() => setAddOpen(true)}
           onOpenMobile={() => window.location.assign("/")}
+          onOpenDocs={() => showToast("API reference opened in sandbox mode")}
           onMenu={() => setCollapsed(!collapsed)}
         />
         {renderPage()}

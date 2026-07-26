@@ -3,6 +3,9 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.PROTOTYPE_URL || "http://localhost:4173/buyer.html";
 const siteOrigin = new URL(baseUrl).origin;
+const sellerUrl = new URL(baseUrl).pathname.endsWith(".html")
+  ? `${siteOrigin}/seller.html`
+  : `${siteOrigin}/seller/`;
 const authToken = process.env.PROTOTYPE_AUTH_TOKEN;
 const chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const outputDir = new URL("../test-artifacts/", import.meta.url);
@@ -92,6 +95,64 @@ await mobile.getByText("Early repayment options opened", { exact: true }).waitFo
 
 await mobile.getByRole("button", { name: "You", exact: true }).click();
 await mobile.getByRole("heading", { name: "Asha Mehta" }).waitFor();
+await mobile.getByRole("button", { name: /My credit score/i }).click();
+await mobile.getByRole("heading", { name: "Know where your credit stands" }).waitFor();
+await assertNoPageOverflow(mobile, "credit health consent");
+await mobile.getByRole("button", { name: /What if no score is found/i }).click();
+await mobile.getByRole("heading", {
+  name: "A bureau may not have enough history to create a score",
+}).waitFor();
+await mobile.getByRole("button", { name: /Continue to score check/i }).click();
+await mobile.getByRole("checkbox").check();
+await mobile.screenshot({
+  path: new URL("credit-health-consent.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: /Get my latest score/i }).click();
+await mobile.getByRole("heading", { name: "Getting your latest score" }).waitFor();
+await mobile.getByText("742", { exact: true }).waitFor({ timeout: 5000 });
+await assertNoPageOverflow(mobile, "credit health dashboard");
+await mobile.screenshot({
+  path: new URL("credit-health-dashboard.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: "Refresh score" }).click();
+await mobile.getByRole("heading", { name: "Looking for newer data" }).waitFor();
+await mobile.getByRole("heading", { name: "Your saved score is still available" }).waitFor({
+  timeout: 5000,
+});
+await mobile.screenshot({
+  path: new URL("credit-health-partner-delay.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: /Use saved score/i }).click();
+await mobile.getByText("742", { exact: true }).waitFor();
+await mobile.getByRole("button", { name: /Credit use needs attention/i }).click();
+await mobile.getByRole("heading", { name: "Credit use needs attention" }).waitFor();
+await mobile.getByRole("button", { name: /View my action plan/i }).click();
+await mobile.getByRole("heading", { name: "Three focused next steps" }).waitFor();
+await mobile.getByRole("button", { name: "Start", exact: true }).click();
+await mobile.getByRole("button", { name: "Review", exact: true }).click();
+await mobile.getByRole("heading", { name: "What looks inaccurate?" }).waitFor();
+await mobile.getByLabel("A payment status looks wrong").check();
+await mobile
+  .getByLabel("Tell us what you expected to see")
+  .fill("Payment was made before the due date.");
+await mobile.screenshot({
+  path: new URL("credit-health-dispute.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: /Submit correction request/i }).click();
+await mobile.getByRole("heading", {
+  name: "Your correction request is being tracked",
+}).waitFor();
+await mobile.screenshot({
+  path: new URL("credit-health-dispute-success.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: /Back to Credit Health/i }).click();
+await mobile.getByRole("button", { name: "Go back" }).click();
+await mobile.getByText("742 · Good", { exact: true }).waitFor();
 await mobile.getByRole("button", { name: /Addresses/i }).click();
 await mobile.getByText("Addresses opened", { exact: true }).waitFor();
 
@@ -100,6 +161,9 @@ await mobile.getByPlaceholder("Search products or categories").waitFor();
 await mobile.getByPlaceholder("Search products or categories").fill("not-a-real-product");
 await mobile.getByRole("heading", { name: "No products found" }).waitFor();
 await mobile.getByRole("button", { name: "Clear search" }).click();
+await mobile.getByRole("button", { name: /Under ₹1,000/i }).click();
+await mobile.getByRole("button", { name: /Pulse Buds 2/i }).waitFor();
+await mobile.getByRole("button", { name: /All plans/i }).click();
 await mobile
   .getByLabel("Product categories")
   .getByRole("button", { name: "Home", exact: true })
@@ -112,6 +176,9 @@ await mobile.getByRole("button", { name: "Share" }).click();
 await mobile.getByText("Product link ready to share", { exact: true }).waitFor();
 await mobile.getByRole("button", { name: "Save product" }).click();
 await mobile.getByRole("button", { name: "Remove from saved" }).waitFor();
+await mobile
+  .getByText("Product link ready to share", { exact: true })
+  .waitFor({ state: "hidden" });
 await mobile.getByRole("button", { name: /Full UPI/i }).click();
 await mobile.getByRole("button", { name: /Pay in 3/i }).click();
 await mobile.screenshot({
@@ -119,12 +186,28 @@ await mobile.screenshot({
   fullPage: true,
 });
 
-await mobile.getByRole("button", { name: /^Continue/i }).click();
+await mobile.getByRole("button", { name: /Add to bag/i }).click();
+await mobile.getByRole("heading", { name: "Your bag" }).waitFor();
+await assertAtScrollOrigin(mobile, ".cart-screen", "mobile bag");
+await mobile.screenshot({
+  path: new URL("mobile-bag.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: /Add Pulse Buds 2/i }).click();
+await mobile.getByText("₹504", { exact: true }).waitFor();
+await mobile.screenshot({
+  path: new URL("mobile-bag-bundle.png", outputDir).pathname,
+  fullPage: true,
+});
+await mobile.getByRole("button", { name: /Review payment/i }).click();
 await mobile.getByRole("heading", { name: "Review purchase" }).waitFor();
 await assertAtScrollOrigin(mobile, ".checkout-screen", "mobile checkout");
 await mobile.getByRole("button", { name: "Go back" }).click();
-await mobile.getByRole("heading", { name: "Nova X1 5G" }).waitFor();
-await mobile.getByRole("button", { name: /^Continue/i }).click();
+await mobile.getByRole("heading", { name: "Your bag" }).waitFor();
+await mobile.getByRole("button", { name: /Remove Pulse Buds 2/i }).click();
+await mobile.getByRole("button", { name: /Add Pulse Buds 2/i }).waitFor();
+await mobile.getByRole("button", { name: /Add Pulse Buds 2/i }).click();
+await mobile.getByRole("button", { name: /Review payment/i }).click();
 await mobile.getByRole("heading", { name: "Review purchase" }).waitFor();
 await mobile.getByRole("button", { name: /superCard EMI/i }).click();
 await mobile.getByRole("button", { name: /Pay in 3/i }).click();
@@ -148,6 +231,29 @@ await mobile.getByText("Nova X1 5G", { exact: true }).waitFor();
 await mobile.getByRole("button", { name: "Home", exact: true }).click();
 await mobile.getByText("Good afternoon, Asha", { exact: true }).waitFor();
 
+for (const width of [360, 430]) {
+  const responsiveBuyer = await newPage({
+    viewport: { width, height: 844 },
+    deviceScaleFactor: 1,
+    isMobile: true,
+    hasTouch: true,
+  });
+  await trackPage(responsiveBuyer, `buyer ${width}px`);
+  await responsiveBuyer.goto(baseUrl, { waitUntil: "domcontentloaded" });
+  await responsiveBuyer.getByText("Good afternoon, Asha", { exact: true }).waitFor();
+  await assertNoPageOverflow(responsiveBuyer, `buyer home ${width}px`);
+  await responsiveBuyer
+    .locator(".bottom-nav")
+    .getByRole("button", { name: "Shop", exact: true })
+    .click();
+  await responsiveBuyer.getByPlaceholder("Search products or categories").waitFor();
+  await assertNoPageOverflow(responsiveBuyer, `buyer shop ${width}px`);
+  await responsiveBuyer.getByRole("button", { name: /Nova X1 5G/i }).click();
+  await responsiveBuyer.getByRole("heading", { name: "Nova X1 5G" }).waitFor();
+  await assertNoPageOverflow(responsiveBuyer, `buyer product ${width}px`);
+  await responsiveBuyer.close();
+}
+
 const consumerDesktop = await newPage({
   viewport: { width: 1440, height: 900 },
   deviceScaleFactor: 1,
@@ -155,7 +261,7 @@ const consumerDesktop = await newPage({
 await trackPage(consumerDesktop, "consumer desktop");
 await consumerDesktop.goto(baseUrl, { waitUntil: "domcontentloaded" });
 await consumerDesktop.getByRole("heading", {
-  name: "Credit should shape the catalogue, not interrupt checkout.",
+  name: "Affordability should shape discovery, the bag, and checkout.",
 }).waitFor();
 await assertNoPageOverflow(consumerDesktop, "consumer desktop");
 await consumerDesktop.screenshot({
@@ -168,7 +274,7 @@ const seller = await newPage({
   deviceScaleFactor: 1,
 });
 await trackPage(seller, "seller");
-await seller.goto(`${siteOrigin}/seller/`, { waitUntil: "domcontentloaded" });
+await seller.goto(sellerUrl, { waitUntil: "domcontentloaded" });
 await seller.getByRole("heading", { name: "Commerce overview" }).waitFor();
 await assertNoPageOverflow(seller, "seller overview");
 await seller.screenshot({
@@ -260,6 +366,30 @@ await seller.screenshot({
   fullPage: true,
 });
 
+await seller.getByRole("button", { name: /Channels & APIs/ }).click();
+await seller.getByRole("heading", { name: "Channels & APIs", exact: true }).waitFor();
+await seller.getByRole("button", { name: /Run test checkout/i }).click();
+await seller.getByText("Passed now", { exact: true }).waitFor({ timeout: 5000 });
+await seller.getByRole("button", { name: /Send test webhook/i }).click();
+await seller.getByText("Test webhook delivered successfully", { exact: true }).waitFor();
+await seller.screenshot({
+  path: new URL("seller-integrations.png", outputDir).pathname,
+  fullPage: true,
+});
+
+const compactSeller = await newPage({
+  viewport: { width: 1280, height: 800 },
+  deviceScaleFactor: 1,
+});
+await trackPage(compactSeller, "seller 1280px");
+await compactSeller.goto(sellerUrl, { waitUntil: "domcontentloaded" });
+await compactSeller.getByRole("heading", { name: "Commerce overview" }).waitFor();
+await assertNoPageOverflow(compactSeller, "seller overview 1280px");
+await compactSeller.getByRole("button", { name: /Channels & APIs/ }).click();
+await compactSeller.getByRole("heading", { name: "Channels & APIs", exact: true }).waitFor();
+await assertNoPageOverflow(compactSeller, "seller integrations 1280px");
+await compactSeller.close();
+
 await browser.close();
 
 if (failures.length) {
@@ -269,5 +399,5 @@ if (failures.length) {
 }
 
 console.log("Prototype verification passed.");
-console.log("Buyer: home → credit/profile → catalogue → product → checkout → success.");
-console.log("Seller: overview → offer → catalogue/onboarding → orders → settlements → analytics.");
+console.log("Buyer: home → Credit Health → budget discovery → product → bag/bundle → checkout → success.");
+console.log("Seller: overview → offer → catalogue/onboarding → orders → settlements → analytics → channels/APIs.");

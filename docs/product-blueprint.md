@@ -1,5 +1,94 @@
 # Building Affordable Commerce inside super.money
 
+## 0. Recalibrated Strategy Contract
+
+The supplied super.money recording changes the starting point of this case.
+Credit score, credit education, credit building, credit access, and Splitstore
+already appear in the current product. This proposal therefore starts from:
+
+```text
+Payments -> Credit Health -> Credit Access -> Affordable Commerce
+```
+
+The strategic question is:
+
+> How can super.money use an existing payments and credit relationship to build
+> an affordability-first commerce business with repeat usage and positive
+> contribution?
+
+### 0.1 One launch cohort
+
+The first cohort is existing high-frequency UPI users, primarily 21-35, who are
+considering a practical Rs. 5,000-Rs. 30,000 purchase and satisfy the relevant
+lender, affordability, product, and fraud policies.
+
+This cohort contains:
+
+- Credit-underserved users who qualify for a suitable short-tenor option
+- Cash-flow-constrained users who prefer a smaller amount today
+- Deal seekers who can pay in full and value a seller-funded offer
+
+Credit is one affordability instrument. The product always preserves a
+full-UPI path where the transaction itself is permitted.
+
+### 0.2 Three category groups
+
+The controlled launch catalogue contains 100-300 SKUs across:
+
+1. Budget and refurbished smartphones
+2. Small home appliances
+3. Work/study devices and mobile/audio accessories
+
+Fashion, travel, furniture, luxury goods, and high-return or operationally
+complex categories remain outside the first release.
+
+### 0.3 Three product bets
+
+1. **Affordability-first discovery:** budget rails and user-SKU quotes before
+   checkout.
+2. **Bag-to-checkout optimisation:** responsible bundles, remaining limit,
+   total repayment, KFS, consent, and one orchestrated confirmation.
+3. **Merchant Affordability OS:** onboarding, catalogue, offer funding, orders,
+   settlement, analytics, Splitstore distribution, and white-label APIs.
+
+Credit Health remains a complete borrower module under
+`Profile -> Credit centre -> My credit score`. It manages bureau consent,
+freshness, score factors, actions, delays, and corrections. It does not determine
+or guarantee an offer by itself.
+
+### 0.4 One success model
+
+**Product North Star:** Monthly repeat Affordable Commerce buyers.
+
+**Business scale gate:** Cohort contribution remains positive after returns,
+incentives, payment costs, servicing, fraud, and the platform's expected
+credit-loss exposure.
+
+The canonical funnel is:
+
+```text
+Targeted exposure -> Splitstore visit -> PDP -> bag -> checkout
+-> offer selected -> completed order -> 30/60/90-day repeat
+```
+
+The canonical illustrative scale case is:
+
+| Input | Monthly value |
+|---|---:|
+| Targeted eligible exposures | 1,500,000 |
+| Splitstore visits | 180,000 |
+| Product-detail sessions | 54,000 |
+| Bags created | 18,900 |
+| Checkout starts | 14,553 |
+| Offers selected | 12,141 |
+| Completed orders | 10,800 |
+| AOV | Rs. 7,700 |
+| Monthly GMV | Approximately Rs. 8.3 Cr |
+| Annualised GMV | Approximately Rs. 100 Cr |
+| Contribution/order before fixed cost | Approximately Rs. 70 |
+
+All values are planning assumptions rather than a company forecast.
+
 ## 1. What Are We Building?
 
 We are building an **Affordable Commerce vertical inside super.money**.
@@ -113,6 +202,7 @@ This section is the contract between the product thesis, the prototype, and the 
 | Standard catalogues optimise for clicks and price, not ability to pay | Affordability-first home and listing | Rails are organised around “you can buy today,” upfront amount, and approved plans | Catalogue service joins SKU data with an affordability quote and ranking score | Product-card CTR, PDP open rate, quote-view rate | Increases relevant discovery while limiting unfinanceable impressions |
 | A product can be acceptable for one user and unsafe for another | User-and-SKU eligibility | The same catalogue can expose PayLater, superCard EMI, or full UPI depending on user and SKU rules | Credit eligibility, lender routing, product risk, and seller rules produce allowed plans | Approval rate by user, seller, category, and SKU | Controls adverse selection, fraud, and loss concentration |
 | Hidden credit terms create surprise and abandonment | Transparent product detail | The PDP shows upfront amount, every repayment date, total payable, fees, lender, KFS, return rule, and UPI fallback | Affordability quote is durable and versioned until checkout expiry | Plan selection rate, KFS open and acceptance rate | Improves informed conversion and reduces disputes and support contacts |
+| Generic cross-sell can increase AOV by overextending the buyer | Repayment-aware bag | The bag shows remaining limit and one eligible add-on with the exact repayment delta | Quote service reprices the whole bag and revalidates every SKU | PDP-to-bag, attach rate, bag-to-checkout | Raises contribution-positive AOV with a repayment guardrail |
 | Payment, mandate, loan booking, and order placement fail independently | Checkout orchestrator | One reviewed plan and one confirmation coordinate down payment, AutoPay, loan, and order | Checkout state machine, idempotency, lender adapter, payment service, order bridge | Mandate success, down-payment success, loan-booking success, order success | Reduces cart abandonment, orphan loans, and manual reconciliation |
 | The customer experiences one purchase, but internal systems create two obligations | Unified post-purchase timeline | One confirmation shows order ID, loan ID, fulfilment state, amount paid, and next due date | Order, loan, repayment, refund, and support events are joined into one read model | Support contacts per order, timeline view rate | Protects trust and lowers support cost |
 | Refunds can leave a customer with the wrong outstanding balance | Refund-to-loan reconciliation | The experience explains that returns adjust outstanding principal and future dues | Refund service applies full or partial reversals to order, lender, and seller ledgers | Refund adjustment TAT, mismatch rate, disputes | Prevents financial harm, complaints, and unreconciled credit exposure |
@@ -121,7 +211,9 @@ This section is the contract between the product thesis, the prototype, and the 
 | Seller promotions can buy GMV without proving incrementality | Affordability offer simulator | Seller adjusts funding and upfront percentage and sees forecast conversion, cost, and contribution | Offer engine, budget service, experiment assignment, and holdout measurement | Incremental conversion, offer cost per order, budget utilisation | Allocates seller funding to profitable lift rather than subsidised baseline demand |
 | Sellers should not operate lender workflows | Unified financed order operations | Seller fulfils a normal order after super.money has authorised payment and booked credit | Order bridge hides lender complexity while preserving state and audit links | Fulfilment SLA, cancellation rate, order exception rate | Improves merchant adoption and contains account-management cost |
 | Offers, refunds, fees, and payouts create settlement disputes | Settlement reconciliation | Portal explains gross value, fees, offer funding, reversals, net payout, and match rate | Seller settlement ledger joins order and refund events with commercial terms | Auto-match rate, settlement TAT, dispute rate | Builds merchant trust and lowers finance-operations load |
-| GMV can hide return abuse, incentives, fraud, and credit loss | Risk-adjusted commerce analytics | Cohorts are compared on conversion, AOV, repeat, DPD, expected loss, and net contribution | Analytics model joins commerce, credit, seller, experiment, and cost data | Contribution-positive financed GMV from repeat users | Prevents growth that is negative after risk and incentives |
+| A score without freshness, explanation, or correction gives little control | Credit Health management | Consent, source, dated score, factors, action plan, delay fallback, and tracked correction | Bureau adapter, score snapshot, explanation, action, and case services | Retrieval, comprehension, action start, correction outcome | Builds trust without forcing an application |
+| Merchant supply is limited to the in-app store | Shared channel and merchant API | Portal shows Splitstore plus signed external merchant sessions and webhooks | Partner BFF reuses catalogue, eligibility, offer, checkout, refund, and settlement contracts | Merchant time-to-live, external checkout conversion | Extends affordability distribution without duplicating lender integrations |
+| GMV can hide return abuse, incentives, fraud, and credit loss | Risk-adjusted commerce analytics | Cohorts are compared on conversion, AOV, repeat, DPD, expected loss, and net contribution | Analytics model joins commerce, credit, seller, experiment, and cost data | Monthly repeat buyers, contribution/order | Prevents growth that is negative after risk and incentives |
 
 ### Product Surfaces In Scope
 
@@ -130,10 +222,12 @@ Buyer mobile app:
 1. UPI home entry with a pre-qualified shopping limit
 2. Affordability-first catalogue and search
 3. Product detail with approved financing options
-4. Pay in 3, superCard EMI, and full-UPI fallback
-5. Address, plan, KFS, consent, AutoPay, and order confirmation
-6. Unified order and credit timeline
-7. Credit home for repayment, limit utilisation, and limit growth
+4. Repayment-aware bag with one responsible bundle
+5. Pay in 3, superCard EMI, and full-UPI fallback
+6. Address, plan, KFS, consent, AutoPay, and order confirmation
+7. Unified order and credit timeline
+8. Credit home for repayment, limit utilisation, and limit growth
+9. Credit Health score, factors, actions, delay, and correction states
 
 Seller web portal:
 
@@ -143,6 +237,8 @@ Seller web portal:
 4. Financed order fulfilment
 5. Settlement and refund reconciliation
 6. Cohort analytics across conversion, repeat, returns, delinquency, and contribution
+7. Merchant onboarding readiness and channel controls
+8. White-label checkout APIs and signed webhook health
 
 Platform responsibilities represented in the prototype:
 
@@ -167,9 +263,12 @@ Platform responsibilities represented in the prototype:
 
 ### The Single Question This Scope Must Answer
 
-**Can a UPI app turn eligible payment users into responsible repeat shoppers by making affordability the discovery layer, while using seller funding and SKU-level risk controls to produce positive contribution?**
+**Can super.money turn its existing payments and credit relationship into repeat
+Affordable Commerce usage while seller funding, SKU controls, and the complete
+variable-cost stack remain contribution-positive?**
 
-If a component does not help answer this question, it does not belong in the 90-day MVP.
+If a component does not help answer this question, it does not belong in the
+six-month controlled launch.
 
 ## 6. Target Users
 
@@ -233,37 +332,37 @@ Risk note:
 
 This persona should initially receive smaller limits and higher down-payment requirements until repayment behavior is proven.
 
-### Persona 3: Priya, Value Shopper / Homemaker
+### Persona 3: Priya, Full-UPI Deal Seeker
 
 Profile:
 
 - 34 years old
-- Manages household spends
-- Uses UPI for grocery, food, utility bills
-- Looks for savings and deals
+- Manages household purchases
+- Can pay the full price from her bank account
+- Looks for reliable products and seller-funded savings
 
 Needs:
 
-- Grocery / fashion / appliance offers
-- Vouchers that can reduce monthly spends
-- Easy repayment calendar
-- No fear of surprise charges
+- Small-appliance and work/study offers
+- Clear comparison between full UPI and financing
+- No unnecessary credit application
+- Reliable delivery and replacement
 
 Example purchase:
 
-- Rs. 3,000 grocery voucher bundle
-- Rs. 1,000 now + Rs. 1,000 x 2
+- Rs. 5,997 mixer grinder
+- Pays in full with UPI and receives a seller-funded discount
 
 Why she converts:
 
-- The product helps smooth monthly cash flow
-- The value is practical, not aspirational
+- Splitstore still provides value without requiring credit
+- The offer is practical and transparent
 
 ### Persona 4: Seller / Merchant
 
 Profile:
 
-- Sells mobile accessories, appliances, vouchers, refurbished phones, or value fashion
+- Sells mobile accessories, appliances, work/study products, or refurbished phones
 - Struggles with conversion and cart abandonment
 - Can fund offers if conversion lift is measurable
 
@@ -289,13 +388,10 @@ Start with categories where financing can improve conversion and risk can be con
 
 ### Good MVP Categories
 
-1. Mobile accessories
-2. Refurbished / budget smartphones
-3. Small appliances
-4. Kitchen essentials
-5. Personal care devices
-6. Education and work-from-home devices
-7. Gift vouchers for grocery, food, mobility, medicine, and fashion
+1. Refurbished and budget smartphones
+2. Small home and kitchen appliances
+3. Education and work-from-home devices
+4. Mobile and audio accessories used as bundles or repeat products
 
 ### Why These Categories
 
@@ -304,7 +400,7 @@ Start with categories where financing can improve conversion and risk can be con
 - Clear consumer need
 - Financing can unlock conversion
 - Seller-funded discounts are possible
-- Repeat behavior exists in vouchers and essentials
+- Accessories provide a controlled bundle and repeat-purchase use case
 
 ### Avoid Initially
 
@@ -315,6 +411,7 @@ Start with categories where financing can improve conversion and risk can be con
 - High-return size-sensitive fashion
 - Perishables
 - Travel bookings
+- Gift vouchers during the financed-commerce pilot
 - Crypto / financial instruments
 - Any prohibited or regulatory-sensitive category
 
@@ -764,43 +861,41 @@ Formula:
 
 ### Example Economics
 
-Assume:
+Use one illustrative Rs. 7,700 order throughout the case:
 
-- AOV: Rs. 3,000
-- Merchant fee: 1.5%
-- Lender / LSP revenue: 1.0%
-- Seller subvention: 1.0%
-- Payment and mandate cost: 0.3%
-- Cashback cost: 0.7%
-- Support and ops cost: 0.3%
-- Fraud / credit loss share: 0.5%
+| Line | Rs./order | % of AOV |
+|---|---:|---:|
+| Merchant/take revenue | 139 | 1.80% |
+| Lender/affordability service revenue | 92 | 1.20% |
+| Payment/affiliate revenue | 15 | 0.20% |
+| **Gross variable revenue** | **246** | **3.20%** |
+| Rewards and funded-offer share | -55 | -0.71% |
+| Payment and mandate cost | -10 | -0.13% |
+| Servicing and support | -18 | -0.23% |
+| Fraud and refund operations | -20 | -0.26% |
+| Platform risk/expected-loss exposure | -65 | -0.84% |
+| Infrastructure and communications | -8 | -0.10% |
+| **Contribution before fixed cost** | **70** | **0.91%** |
 
-Revenue:
-
-- 3.5% of GMV = Rs. 105
-
-Cost:
-
-- 1.8% of GMV = Rs. 54
-
-Contribution:
-
-- Rs. 51 per order
-- 1.7% contribution margin
-
-This only works if:
-
-- Delinquency is controlled
-- Returns are controlled
-- Seller funding exists
-- Repeat purchase rate improves
-- Support cost does not explode
+At 10,800 monthly orders this represents approximately Rs. 8.3 Cr monthly GMV
+and Rs. 7.6 L monthly contribution before fixed cost. Actual economics depend on
+merchant and lender contracts, tax, category mix, and regulated risk-sharing
+boundaries.
 
 ### North Star Metric
 
-**Contribution-positive financed GMV from repeat users.**
+**Monthly repeat Affordable Commerce buyers.**
 
-Do not use plain GMV as the North Star because it can hide credit losses, refunds, and incentives.
+This measures whether users develop a commerce habit rather than complete one
+subsidised transaction.
+
+The business scale gate is:
+
+**Cohort contribution remains positive after refunds, incentives, payment cost,
+servicing, fraud, and the platform's expected credit-loss exposure.**
+
+Plain GMV remains an output metric because it can hide credit losses, refunds,
+and incentives.
 
 ## 14. Metrics
 
@@ -821,6 +916,9 @@ Do not use plain GMV as the North Star because it can hide credit losses, refund
 
 ### Checkout Metrics
 
+- PDP-to-bag conversion
+- Bag attach rate
+- Bag-to-checkout completion
 - Checkout start rate
 - Loan approval rate
 - KFS acceptance rate
@@ -1525,90 +1623,107 @@ Purpose:
 
 Merchant sends inventory updates.
 
-## 19. 90-Day MVP Roadmap
+## 19. Six-Month Controlled-Launch Roadmap
 
-### Days 0-15: Discovery And Definition
-
-Work:
-
-- User interviews
-- Seller interviews
-- Existing PayLater funnel analysis
-- Existing UPI user segmentation
-- Lender constraints mapping
-- Category risk review
-- Compliance review
-
-Output:
-
-- MVP category list
-- User eligibility criteria
-- Seller eligibility criteria
-- Product requirements
-- Risk guardrails
-- Metrics dashboard definition
-
-### Days 16-30: Prototype
+### Month 1: Define The Wedge And Economics
 
 Work:
 
-- Commerce home prototype
-- Product card affordability labels
-- PDP repayment plan module
-- Checkout flow prototype
-- Seller portal wireframe
-- Refund flow service design
+- Interview at least 30 target users and 15 candidate merchants
+- Analyse existing Splitstore, credit, and checkout funnels
+- Baseline conversion, AOV, returns, support, repayment, and contribution
+- Score the category options and select three groups
+- Map lender, fraud, legal, data-consent, and merchant constraints
 
-Output:
+Exit evidence:
 
-- Clickable user prototype
-- Seller portal prototype
-- API contracts
-- Schema draft
-- Experiment plan
+- Signed launch cohort and category contract
+- Baseline funnel and complete variable-cost model
+- Risk and compliance control register
+- Three anchor-merchant hypotheses
 
-### Days 31-60: Build Closed Beta
+### Month 2: Lock Product And Integration Contracts
 
 Work:
 
-- Catalogue ingestion
-- Product eligibility rules
-- User affordability API
-- Checkout session orchestration
-- Loan partner integration
-- Down payment flow
-- Order bridge
-- Repayment ledger
-- Basic seller dashboard
-- Support console timeline
+- Validate budget-led discovery and repayment-aware bag
+- Finalise PDP, checkout, refund, repayment, and Credit Health states
+- Finalise seller onboarding and white-label merchant session APIs
+- Lock schema, events, idempotency, and support timelines
+- Build partner simulators for lender, bureau, payment, order, and webhook flows
 
-Output:
+Exit evidence:
 
-- Internal alpha
-- Test catalogue
-- Test seller
-- End-to-end order with loan
-- Refund test
+- Tested borrower and seller prototypes
+- Versioned API and event contracts
+- Approved disclosures, consent, KFS, and refund treatment
+- Experiment design and instrumentation plan
 
-### Days 61-90: Launch Controlled Beta
+### Month 3: Build The Commerce Decision Loop
 
 Work:
 
-- Launch to selected eligible users
-- Monitor approval and repayment
-- Run offer tests
-- Add more SKUs
-- Improve seller analytics
-- Tune credit/risk rules
-- Support issue tagging
+- Catalogue ingestion and seller setup
+- Search and affordability-led ranking
+- User-SKU eligibility and quote generation
+- Bag repricing and remaining-limit checks
+- One lender adapter and payment/mandate adapter
 
-Output:
+Exit evidence:
 
-- 3 categories live
-- 20-50 sellers or controlled catalogue
-- Daily funnel dashboard
-- Weekly credit performance review
-- Go/no-go expansion decision
+- Internal catalogue with 100-300 governed SKUs
+- Stable quote latency and expiry behavior
+- Successful simulated eligible and ineligible journeys
+
+### Month 4: Build Transaction And Operations
+
+Work:
+
+- Checkout orchestrator and compensation states
+- Order bridge, repayment ledger, and refund reconciliation
+- Seller settlement and signed outbound webhooks
+- Unified borrower timeline and support case view
+- Daily funnel, money-movement, and reconciliation monitoring
+
+Exit evidence:
+
+- End-to-end internal order
+- Full and partial refund tests
+- Loan-booked/order-failed recovery test
+- Matched seller settlement
+
+### Month 5: Controlled Alpha
+
+Scope:
+
+- 1,000 invited users
+- Three anchor sellers
+- 100-300 SKUs
+- One primary credit product plus full UPI
+
+Measure:
+
+- Store-to-PDP, PDP-to-bag, bag-to-checkout, and order completion
+- Offer selection, AOV, return, support, and reconciliation
+- Mandate success, 7+ DPD early signal, and complaints
+- Seller setup time and offer-funding incrementality
+
+### Month 6: Feature-Flagged Beta
+
+Scope:
+
+- Up to 50,000 eligible users
+- Holdouts for discovery, bundle, down-payment, and seller funding tests
+- Daily operations and risk review
+- Weekly P&L and merchant review
+
+Expansion gate:
+
+- Repeat purchase signal is improving
+- Cohort contribution is positive
+- 30+ DPD and fraud remain within agreed thresholds
+- Refund and settlement mismatches remain within operational capacity
+- Complaints, disclosures, and consent pass compliance review
 
 ## 20. Experimentation Plan
 
@@ -1616,7 +1731,8 @@ Output:
 
 Hypothesis:
 
-Showing “Rs. X today” improves PDP CTR versus showing full price only.
+Showing “Rs. X today” improves qualified PDP-to-bag conversion versus showing
+full price only.
 
 Variants:
 
@@ -1626,13 +1742,33 @@ Variants:
 
 Primary metric:
 
-- Product card to PDP conversion
+- PDP-to-bag conversion
 
 Guardrail:
 
-- Checkout drop-off
+- Ineligible impressions, bag-to-checkout, returns, 30+ DPD, contribution/order
 
-### Experiment 2: Down Payment
+### Experiment 2: Responsible Bundle
+
+Hypothesis:
+
+Showing one add-on that fits the remaining limit, with the exact repayment delta,
+increases contribution-positive AOV.
+
+Variants:
+
+- Bag without add-on
+- One eligible add-on with repayment delta
+
+Primary metric:
+
+- Contribution-positive AOV
+
+Guardrail:
+
+- Checkout completion, return rate, 30+ DPD
+
+### Experiment 3: Down Payment
 
 Hypothesis:
 
@@ -1640,9 +1776,9 @@ Higher down payment reduces delinquency without hurting conversion too much.
 
 Variants:
 
-- 0% upfront
 - 20% upfront
 - 33% upfront
+- 50% upfront
 
 Primary metric:
 
@@ -1652,7 +1788,7 @@ Guardrail:
 
 - 30+ DPD
 
-### Experiment 3: Seller Subvention
+### Experiment 4: Seller Subvention
 
 Hypothesis:
 
@@ -1672,7 +1808,7 @@ Guardrail:
 
 - Seller ROI
 
-### Experiment 4: Repayment Reminder
+### Experiment 5: Repayment Reminder
 
 Hypothesis:
 
@@ -1863,13 +1999,16 @@ Naman
 
 ---
 
-# Part II: Credit Health And Scoring Case Study
+# Part II: Credit Health Management Extension
 
-This is a separate, independently shippable product case inside the same lending
-experience. Affordable Commerce helps a user finance a useful purchase. Credit
-Health helps the same user understand the credit profile that influences access
-to loans and cards, correct inaccurate information, and take responsible steps
-before applying again.
+The supplied app recording shows that super.money already has a credit-score
+surface, score education, credit-building products, and credit offers. This case
+therefore proposes the next management layer: source and freshness, factor
+diagnosis, a focused action plan, partner-delay handling, and tracked correction.
+
+Affordable Commerce helps an eligible user finance a useful purchase. Credit
+Health Management helps the same user understand and correct the bureau profile
+that may influence future access to loans and cards.
 
 The two experiences share platform capabilities, but they need separate
 purpose-bound consent and clear user expectations. Viewing a score must never
@@ -1878,8 +2017,12 @@ used as pressure to borrow.
 
 ## 26. Executive Recommendation
 
-Launch an India-first **Credit Health** experience on mobile and web within six
-months. The MVP should contain three connected capabilities:
+Extend the existing India-first **Credit Health** experience within six months.
+The production capability should use shared APIs for mobile and authenticated
+responsive web. The portfolio prototype intentionally demonstrates only the
+borrower mobile journey, matching the current super.money navigation.
+
+The extension should contain three connected capabilities:
 
 1. **Latest available bureau score:** Retrieve the latest score available from
    an approved credit bureau after identity verification and explicit consent.
@@ -2913,15 +3056,24 @@ Recommended prototype sequence:
 
 ```text
 Mobile:
-Credit tab -> consent -> score -> factor -> action -> correction/pending state
+Profile -> Credit centre -> My credit score
+-> purpose consent
+-> latest available score
+-> factor detail
+-> three-action plan
+-> correction and tracked case
 
-Web:
-Score overview -> history -> factor detail -> action tracker -> report/dispute
+Operational branches:
+no bureau file
+partner timeout -> dated saved score
+secondary entry from Credit tab
+contextual link to available shopping limit
 ```
 
-The prototype should demonstrate at least one successful score retrieval, one
-thin-file or unavailable state, and one correction journey. Those states prove
-the product handles reality beyond the ideal dashboard.
+The mobile prototype demonstrates a successful retrieval, thin-file guidance,
+partner-delay fallback, and a correction journey. Shared domain APIs support a
+later responsive web surface without requiring a second prototype for this
+portfolio.
 
 ## 42. Concise Answers To The Case Questions
 

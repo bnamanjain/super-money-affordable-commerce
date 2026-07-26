@@ -1,470 +1,423 @@
 # Affordable Commerce Prototype Walkthrough
 
-## 1. What This Prototype Is
+## 1. Purpose
 
-This is a connected product prototype for an Affordable Commerce vertical inside super.money.
+This prototype demonstrates one connected system through two role-appropriate
+surfaces:
 
-It has two surfaces:
+1. A borrower mobile app for payments, Credit Health, Splitstore discovery, bag,
+   checkout, order, and repayment.
+2. A seller web portal for onboarding, catalogue, offers, fulfilment, settlement,
+   analytics, and merchant API integration.
 
-1. A buyer mobile app, because payment, UPI, credit, shopping, and repayment are customer phone journeys.
-2. A seller desktop portal, because catalogue operations, offer funding, fulfilment, settlements, and analytics are merchant workflows.
+Public links:
 
-Both surfaces use the same products, financing logic, order identifiers, and commercial assumptions. The prototype is therefore one system story, not two disconnected design exercises.
+- Borrower: https://super-money-affordable-commerce.naman884186.chatgpt.site/buyer
+- Seller: https://super-money-affordable-commerce.naman884186.chatgpt.site/seller
 
-Working prototype:
+Both links require no sign-in and contain fictional demonstration data.
 
-- Buyer app: https://super-money-affordable-commerce.naman884186.chatgpt.site
-- Seller portal: https://super-money-affordable-commerce.naman884186.chatgpt.site/seller
+## 2. Strategic Scope
 
-The deployment is owner-only while the application package is being prepared. Add the intended viewers or change access before sending it to leadership.
+The prototype starts from the supplied current-app recording:
 
-The thesis:
+```text
+UPI home
+  -> Splitstore commerce entry
 
-**Credit should shape the catalogue, not interrupt checkout.**
+Profile
+  -> Credit centre
+  -> My credit score
+```
 
-The first release is designed to answer one question:
+Credit Health and Splitstore remain distinct user jobs:
 
-**Can super.money turn eligible UPI users into responsible repeat shoppers through credit-aware discovery, while seller funding and SKU-level risk controls keep financed commerce contribution-positive?**
+- Credit Health helps the borrower understand and correct bureau information.
+- Splitstore helps an eligible borrower discover and purchase what fits.
+- A contextual bridge explains that score is one input into a shopping limit.
 
-## 2. Scope
+The commerce scope contains three product bets:
 
-### Buyer Mobile App
+1. Affordability-led discovery
+2. Repayment-aware bag and checkout
+3. Merchant Affordability OS across in-app and white-label channels
 
-In scope:
+## 3. Shared Demonstration Objects
 
-- Commerce entry from a high-frequency UPI home
-- Pre-qualified shopping limit
-- Affordability-first product discovery
-- User-and-SKU-specific financing eligibility
-- Pay in 3, superCard EMI, and full-UPI fallback
-- Product detail with repayment schedule, lender, fees, KFS, delivery, and return terms
-- Address, AutoPay, consent, down payment, loan booking, and order placement
-- Unified order and repayment timeline
-- Active plans, repayment, limit utilisation, and responsible limit growth
+| Object | Prototype value |
+|---|---|
+| Borrower | Asha Mehta |
+| Latest available bureau score | 742, Good |
+| Bureau source | TransUnion CIBIL |
+| Bureau-file date | 20 Jul 2026 |
+| Available shopping limit | Rs. 12,000 |
+| Primary SKU | Nova X1 5G |
+| Responsible add-on | Pulse Buds 2 |
+| Primary seller | ValueKart Retail |
+| Single-item price | Rs. 8,997 |
+| Two-item bag | Rs. 11,496 |
+| Two-item Pay-in-3 plan | Rs. 3,832 today plus Rs. 3,832 x 2 |
+| Remaining limit after bundle | Rs. 504 |
+| Lender in concept | DMI Finance |
+| Order reference | SM-28491 |
+| Credit reference | DMI-60184 |
+| Correction case | CH-260726-1842 |
 
-### Seller Web Portal
+## 4. Borrower Mobile Walkthrough
 
-In scope:
+### Screen 1: UPI Home And Splitstore
 
-- Risk-adjusted business dashboard
-- SKU-level financeability and catalogue health
-- Seller-funded offer simulator
-- Controlled campaign launch and holdout logic
-- Financed order fulfilment
-- Settlement and refund reconciliation
-- Cohort analytics connecting conversion, repeat, returns, delinquency, expected loss, and contribution
+**Problem**
 
-### Platform Responsibilities Represented
+Payment frequency alone does not create a differentiated reason to shop.
 
-- User credit profile and available commerce limit
-- Seller and SKU risk policy
-- Affordability quote generation
-- Checkout state orchestration
-- Payment and lender adapters
-- Order, loan, repayment, refund, and seller-settlement ledgers
-- Experiment assignment and risk-adjusted analytics
+**Decision**
 
-### Intentionally Out Of Scope
+Keep the existing UPI home structure and introduce Splitstore as a focused
+commerce destination. The banner promises a clear use case: shop now and split
+the payment into three.
 
-- A broad Flipkart-like marketplace
-- Inventory ownership, warehousing, or super.money delivery operations
-- High-risk and high-return categories
-- Long-tenor or open-ended shopping loans
-- A complete underwriting model built from scratch
-- Lender loan-management and collections-agent back offices
-- Every seller connector and fulfilment integration
+**Observe**
 
-## 3. Shared Demo Objects
+- Payment actions remain primary.
+- The Rs. 12,000 available limit makes the entry relevant.
+- Splitstore is a full-screen destination after entry.
+- Product recommendations remain within the available limit.
 
-The prototype keeps a small set of objects consistent across the buyer and seller experience:
+**Measure**
 
-| Object | Prototype value | Why it matters |
-|---|---|---|
-| Buyer | Asha Mehta | Thin-file, first-job salaried user with frequent UPI activity |
-| Available shopping limit | Rs. 12,000 | Makes eligibility visible before shopping starts |
-| Primary SKU | Nova X1 5G | Practical, lower-ticket smartphone with manageable risk and clear financing value |
-| Seller | ValueKart Retail | Approved seller whose catalogue is evaluated at SKU level |
-| Purchase price | Rs. 8,997 | Fits the buyer limit and supports a clean three-payment schedule |
-| Selected plan | Rs. 2,999 today + Rs. 2,999 x 2 | Makes cash-flow smoothing concrete and transparent |
-| Lender | DMI Finance in the concept flow | Shows the LSP / regulated-lender relationship |
-| Order ID | SM-28491 | Links buyer timeline, seller fulfilment, and settlement |
-| Loan ID | DMI-60184 | Links the commerce order to the credit obligation |
+Eligible exposure, Splitstore CTR, qualified visits.
 
-## 4. Buyer Mobile Walkthrough
+### Screen 2: Credit Centre Entry
 
-### Screen 1: UPI Home And Shopping Limit
+**Problem**
 
-Problem:
+A score placed only near lending offers can feel like a sales funnel.
 
-UPI is frequent, but frequency does not automatically create shopping intent. A generic commerce tab would compete with established ecommerce apps without a differentiated reason to enter.
+**Decision**
 
-Product decision:
+Place the primary Credit Health entry under
+`Profile -> Credit centre -> My credit score`. Keep a smaller secondary entry in
+the Credit tab.
 
-Show Asha a pre-qualified Rs. 12,000 shopping limit on the existing payments home. The entry is based on eligibility, not a broad promotional blast.
+**Observe**
 
-What to point out:
+- Credit Health has its own purpose and consent.
+- Checking the score does not start a credit application.
+- The stored profile later shows `742 - Good`.
 
-- Commerce is embedded in the payments home.
-- The amount available to spend is concrete.
-- “Pre-approved” reduces uncertainty.
-- “No joining fee” addresses a thin-file user’s fear of hidden credit cost.
-- Existing payment actions remain available, preserving the identity of the app.
+**Measure**
 
-Measure:
+Entry rate, consent completion, retrieval success.
 
-- Eligible-user exposure
-- Commerce entry CTR
-- Eligible-user activation
+### Screen 3: Credit Health Consent
 
-Business effect:
+**Problem**
 
-Converts high-frequency payment users into qualified commerce demand without paying for an unrelated acquisition channel.
+Users may not understand who supplies the score, why data is requested, or
+whether a pull creates a loan application.
 
-### Screen 2: Affordability-First Discovery
+**Decision**
 
-Problem:
+Explain the source, purpose, view-only request, hard-inquiry status, and data-use
+consent before retrieval.
 
-A standard catalogue shows the same price to every user and allows eligibility failure to occur only after shopping intent has formed.
+**Observe**
 
-Product decision:
+- TransUnion CIBIL is named.
+- The purpose is Credit Health only.
+- The checkbox is required.
+- No-file education is available before continuing.
 
-Rank only relevant, financeable products and show the amount due today on the product card.
+**Measure**
 
-What to point out:
+Consent comprehension and completion, abandonment, complaints.
 
-- “Useful upgrades. One-third today” describes the cash-flow use case.
-- Product cards lead with Rs. 2,999 today or Rs. 1,999 today.
-- Cashback, delivery, and zero-fee repayment are visible before PDP entry.
-- Categories are deliberately narrow: phones, home, audio, and work/study.
+### Screen 4: Score, Freshness, And Factors
 
-Measure:
+**Problem**
 
-- Product-card CTR
-- Search-to-PDP conversion
-- Affordability quote view rate
-- Unfinanceable impression rate
+A number without source, date, or explanation offers little control.
 
-Business effect:
+**Decision**
 
-Improves relevant discovery without subsidising every product or sending users into a dead-end checkout.
+Show 742 with model range, bureau, retrieval time, bureau-file date, movement,
+three ranked factors, and an education disclaimer.
 
-### Screen 3: Transparent Product And Credit Terms
+**Observe**
 
-Problem:
+- Retrieval and bureau-file dates are separate.
+- Helping, attention, and developing factors are visually distinct.
+- The product avoids guaranteed score or approval claims.
+- The shopping-limit bridge says eligibility uses more than the score.
 
-When credit terms appear only at the end, users experience surprise, abandon checkout, or accept an obligation they did not fully understand.
+**Measure**
 
-Product decision:
+Dashboard activation, factor opens, source/freshness comprehension.
 
-Make affordability the product. The PDP includes every approved option, payment dates, total fees, lender, KFS, delivery, and return rules.
+### Screen 5: Action Plan And Correction
 
-What to point out:
+**Problem**
 
-- Pay in 3 is recommended but not forced.
-- superCard EMI and full UPI remain alternatives.
-- Rs. 0 fee and the full schedule are visible.
-- The lender and Key Fact Statement are shown before checkout.
-- Return and refund implications are discoverable.
+Generic score advice can cause unnecessary or harmful financial actions.
 
-Measure:
+**Decision**
 
-- Plan selection rate
-- KFS open rate
-- KFS acceptance rate
-- PDP-to-checkout start
+Limit the plan to three evidence-based actions with uncertainty and reporting
+timing. Give inaccurate data its own correction workflow.
 
-Business effect:
+**Observe**
 
-Raises informed conversion while reducing disputes, avoidable support, and regulatory risk.
+- The priority action uses a concrete reported balance.
+- AutoPay is already protected.
+- Account review opens a structured correction form.
+- Submission produces a case reference and visible lifecycle.
 
-### Screen 4: One Financed Checkout
+**Measure**
 
-Problem:
+Action start, action completion, correction submission, acknowledgement and
+resolution time.
 
-The customer sees one purchase, but payment, mandate, lender, and merchant systems can each succeed or fail separately.
+### Screen 6: Bureau-Delay Fallback
 
-Product decision:
+**Problem**
 
-Use one durable affordability quote and one reviewed confirmation to orchestrate down payment, AutoPay mandate, loan booking, and order placement.
+A bureau may respond slowly or fail while the user already has a valid saved
+snapshot.
 
-What to point out:
+**Decision**
 
-- Delivery address and selected plan are reviewed together.
-- All repayment dates and total payable are repeated before consent.
-- AutoPay bank account and reminder promise are explicit.
-- Consent to the KFS and loan terms is an active step.
-- Full UPI remains a fallback.
+Preserve the dated saved score, explain that the failed refresh does not imply a
+score change, and offer notification after a successful update.
 
-Measure:
+**Observe**
 
-- Checkout completion
-- Mandate success
-- Down-payment success
-- Loan-booking success
-- Order-placement success
-- Orphan-loan rate
+- No score is estimated.
+- Last successful retrieval and file date remain visible.
+- The user can continue with the saved dashboard.
 
-Business effect:
+**Measure**
 
-Reduces cart abandonment and the operations cost of partially completed financed orders.
+Timeout rate, saved-score use, successful background refresh, notification opt-in.
 
-### Screen 5: Unified Order And Credit Confirmation
+### Screen 7: Budget-Led Splitstore Discovery
 
-Problem:
+**Problem**
 
-Separating the merchant order from the lender obligation makes support and repayment confusing.
+Generic category browsing ignores the user's immediate cash-flow constraint.
 
-Product decision:
+**Decision**
 
-Show one timeline containing the order, loan, amount paid, seller fulfilment, and next repayment.
+Let the borrower shop by the amount due today:
 
-What to point out:
+- All plans within Rs. 12,000
+- Under Rs. 1,000 today
+- Rs. 1,000-Rs. 2,500 today
+- Rs. 2,500+ today
 
-- Order ID and loan ID are both visible.
-- The Rs. 2,999 down payment and Rs. 0 fees are confirmed.
-- Seller shipment and next due date sit on the same timeline.
-- “Track order & repayments” leads to one ongoing account view.
+Category and search controls remain available as secondary discovery tools.
 
-Measure:
+**Observe**
 
-- Support contacts per order
-- Order / loan mismatch rate
-- Timeline engagement
-- On-time first repayment
+- Product cards lead with due-today amount.
+- Future payments and fees are visible.
+- Every shown product is financeable for the demonstration user.
 
-Business effect:
+**Measure**
 
-Protects trust, lowers support cost, and improves first-payment performance.
+Budget-filter use, filter-to-PDP, PDP relevance, ineligible impression rate.
 
-### Screen 6: Repayment And Limit Growth
+### Screen 8: Product And Approved Plans
 
-Problem:
+**Problem**
 
-A shopping-credit product is incomplete if repayment only becomes visible through collection reminders.
+Showing financing only at checkout creates surprise and abandonment.
 
-Product decision:
+**Decision**
 
-Bring available limit, utilisation, active plans, AutoPay, early repayment, and next limit review into the credit home.
+The PDP shows Pay-in-3, superCard EMI, and full UPI with lender, fees, repayment
+dates, KFS link, delivery, and return terms.
 
-What to point out:
+**Observe**
 
-- The product shows the obligation before it becomes overdue.
-- Repayment dates and amounts are concrete.
-- Good behaviour is connected to a possible higher limit.
-- “Pay early” supports control without implying penalty.
+- Full product price remains visible.
+- Pay-in-3 is recommended for this demonstration.
+- Full UPI remains a valid path.
+- The CTA creates a bag rather than skipping directly to final checkout.
 
-Measure:
+**Measure**
 
-- AutoPay success
-- 7+ DPD and 30+ DPD
-- Early repayment
-- Limit utilisation
-- Repeat financed purchase
+Plan interaction, KFS view, PDP-to-bag.
 
-Business effect:
+### Screen 9: Repayment-Aware Bag
 
-Creates the flywheel: responsible purchase → on-time repayment → higher trust / limit → repeat purchase.
+**Problem**
+
+Standard cross-sell can increase AOV by pushing the basket beyond responsible
+purchasing power.
+
+**Decision**
+
+Show one relevant add-on that still fits the current limit and disclose the
+repayment change before it is added.
+
+**Observe**
+
+- Single-item remaining limit is Rs. 3,003.
+- Adding Pulse Buds changes every payment from Rs. 2,999 to Rs. 3,832.
+- The two-item bag leaves Rs. 504.
+- The add-on can be removed and all totals recalculate.
+
+**Measure**
+
+Bundle attach, AOV, bag-to-checkout, return, and DPD guardrails.
+
+### Screen 10: Checkout
+
+**Problem**
+
+Payment, mandate, lender booking, and order creation can fail independently.
+
+**Decision**
+
+Use one reviewed plan and one informed confirmation to coordinate downstream
+systems. Keep KFS consent, lender attribution, repayment schedule, and AutoPay
+visible.
+
+**Observe**
+
+- The quote is revalidated.
+- The user can switch plans.
+- Confirmation remains disabled until consent.
+- Loading prevents duplicate confirmation.
+
+**Measure**
+
+Bag-to-checkout, consent, mandate, lender, payment, and order success.
+
+### Screen 11: Order And Repayment
+
+**Problem**
+
+The borrower experiences one purchase while internal systems produce order,
+payment, credit, and repayment records.
+
+**Decision**
+
+Present one timeline with order ID, credit/payment ID, seller status, amount
+paid, delivery, and next repayment.
+
+**Measure**
+
+Support contacts/order, AutoPay success, repeat purchase.
 
 ## 5. Seller Web Portal Walkthrough
 
 ### Tab 1: Commerce Overview
 
-Operating question:
-
-Is financing creating incremental, contribution-positive sales?
-
-What the portal connects:
-
-- Financed GMV
-- Checkout conversion
-- AOV
-- Per-order contribution
-- Funnel drop-off
-- Incrementality versus UPI-only checkout
-
-Why it exists:
-
-Raw GMV can hide seller funding, cashback, payment cost, fraud, expected credit loss, returns, and support cost. The dashboard anchors the business to contribution-positive financed GMV.
+The North Star is monthly repeat commerce buyers. The dashboard also displays
+conversion, AOV, contribution, unit economics, a full store-to-order funnel, and
+incrementality versus UPI-only checkout.
 
 ### Tab 2: Catalogue
 
-Operating question:
-
-Which products are useful, safe, and commercially viable to finance?
-
-What the portal connects:
-
-- Seller and SKU identity
-- Financeability state
-- Customer upfront plan
-- Inventory
-- Conversion
-- Return rate
-- Contribution per order
-
-Why it exists:
-
-Seller approval is too coarse for lending. Category, ticket size, margin, returns, fraud, fulfilment, and lender rules must be evaluated per SKU.
+The seller can search and filter SKUs, inspect financeability, inventory,
+conversion, returns, and contribution, and submit a new product through product,
+policy, and eligibility steps.
 
 ### Tab 3: Affordability
 
-Operating question:
-
-How much seller funding creates profitable conversion lift?
-
-What the portal connects:
-
-- Seller subvention
-- Customer upfront percentage
-- Forecast conversion
-- Seller cost per completed order
-- Net contribution after expected loss
-- Budget caps and controlled test publishing
-
-Why it exists:
-
-Discounting can create non-incremental GMV and destroy contribution. The seller should fund the smallest offer that creates measurable lift.
+The seller changes subvention and customer upfront percentage. Forecast
+conversion, cost/order, and contribution respond immediately. Publishing creates
+a controlled test with a holdout.
 
 ### Tab 4: Orders
 
-Operating question:
-
-Can the seller fulfil a financed order without operating a lender workflow?
-
-What the portal connects:
-
-- Payment authorisation
-- Loan booking
-- Seller fulfilment
-- Settlement eligibility
-- Return and refund exceptions
-
-Why it exists:
-
-Merchant adoption falls if the seller must understand or reconcile each lending partner.
+The merchant sees a normal fulfilment queue. Internal lender and payment states
+remain linked but do not become merchant tasks.
 
 ### Tab 5: Settlements
 
-Operating question:
-
-Can every fee, offer, return, reversal, and payout be reconciled?
-
-What the portal connects:
-
-- Gross order value
-- Platform / payment fees
-- Seller-funded offers
-- Refund reversals
-- Net payout
-- Automatic match rate
-
-Why it exists:
-
-Transparent reconciliation is required for merchant trust and low-cost scaling.
+Gross order value, platform fee, offer funding, refund reversal, and net payout
+remain reconcilable against the order.
 
 ### Tab 6: Growth And Risk
 
-Operating question:
+Cohorts combine conversion, AOV, 90-day repeat, 7+ DPD, expected loss, and
+contribution/order. Category decisions use repeat and contribution together.
 
-Is financed GMV repeatable after returns, incentives, and credit loss?
+### Tab 7: Channels And APIs
 
-What the portal connects:
+**Problem**
 
-- Conversion
-- AOV
-- 90-day repeat
-- 7+ and 30+ DPD
-- AutoPay success
-- Expected loss
-- Contribution per order
-- Category scale / fix decisions
+Merchant adoption requires an operational path into Splitstore and a technical
+path for external checkout.
 
-Why it exists:
+**Decision**
 
-Commerce growth and lending risk cannot be managed in separate dashboards.
+Show one launch-readiness checklist and two channels:
 
-## 6. Suggested Five-Minute Video
+1. Splitstore marketplace
+2. Merchant checkout sandbox
 
-### 0:00–0:30 — The Opportunity
+The API surface creates signed merchant sessions, returns approved plans,
+confirms checkout, reconciles refunds, and sends signed order/settlement webhooks.
 
-“super.money already has UPI frequency, credit products, cashback, merchant checkout, and access to commerce supply. The opportunity is not to add a generic marketplace. It is to make affordability the discovery layer.”
+**Interactions**
 
-Show the desktop presenter view with the mobile app beside the problem / decision / metric / business-effect rail.
+- Switch sandbox/live mode.
+- Run a test merchant checkout.
+- Copy a sandbox key.
+- Send a test webhook.
 
-### 0:30–1:15 — Activate And Discover
+**Measure**
 
-Open the buyer mobile home. Show the Rs. 12,000 limit, tap “Shop your limit,” and scan the affordability-first catalogue.
+Time-to-live, setup completion, test pass rate, webhook success, external
+checkout conversion.
 
-Say:
+## 6. What Is Simulated
 
-“Asha does not browse a catalogue and discover rejection at checkout. She starts with a responsible limit and products that fit it.”
+The prototype uses React state and fictional data. It does not:
 
-### 1:15–2:10 — Product And Checkout
+- Pull a real bureau score
+- Underwrite or approve credit
+- Create a KFS or loan
+- Move money or register a UPI mandate
+- Reserve inventory
+- Create a merchant order
+- Send an external webhook
+- Store personal, payment, or bureau data
 
-Open Nova X1 5G. Show Pay in 3, superCard EMI, full UPI, repayment dates, lender, KFS, and Rs. 0 fees. Continue to checkout, review AutoPay and consent, then confirm.
+The production responsibilities are documented in
+`docs/system-design-deep-dive.md`.
 
-Say:
+## 7. Three-Minute Recording Path
 
-“The affordability quote is not a late payment widget. It is the product. The checkout coordinates payment, mandate, loan, and order while preserving a full-UPI fallback.”
+| Time | Screen | Narration objective |
+|---|---|---|
+| 0:00-0:20 | Supplied current-app recording | Establish payments, Credit Health, credit access, and Splitstore as the starting point |
+| 0:20-0:40 | Launch cohort and category frame | Explain the narrow customer and supply wedge |
+| 0:40-1:10 | Splitstore discovery, PDP, and bag | Demonstrate affordability as discovery and AOV mechanic |
+| 1:10-1:30 | Credit Health dashboard and delay/correction | Show trust and operational depth without turning it into the main thesis |
+| 1:30-1:50 | Seller overview and offer simulator | Show seller incrementality and P&L |
+| 1:50-2:10 | Channels and APIs | Show marketplace plus white-label infrastructure |
+| 2:10-2:35 | System and loan-booked/order-failed scenario | Prove technical judgement |
+| 2:35-3:00 | Funnel, economics, six-month GTM, close | Explain how the business is measured and safely scaled |
 
-### 2:10–2:40 — Unified Obligation
+## 8. Recommended Demo Order
 
-Show the success timeline and credit home.
+Borrower:
 
-Say:
+```text
+Profile -> Credit centre -> consent -> score -> factor -> action
+-> correction -> saved-score delay
+-> Splitstore -> budget filter -> PDP -> bag -> add/remove bundle
+-> checkout -> confirmation -> Credit/repayment
+```
 
-“Asha sees one purchase: order, loan, delivery, and repayment. Responsible repayment is part of the commerce loop and can earn a higher future limit.”
+Seller:
 
-### 2:40–3:30 — Seller Catalogue
-
-Move to the seller portal. Show the overview and catalogue.
-
-Say:
-
-“Supply is approved per SKU. A safe ticket, strong fulfilment, low returns, enough margin, and lender support determine whether PayLater can be shown.”
-
-### 3:30–4:20 — Offer Economics
-
-Open Affordability. Move the subvention and upfront sliders.
-
-Say:
-
-“The seller does not simply create a discount. They fund the smallest affordability change that creates incremental conversion while keeping contribution positive.”
-
-### 4:20–4:50 — Operations And Risk
-
-Show orders, settlements, and analytics.
-
-Say:
-
-“The seller operates one order; super.money handles lending complexity. The business is measured after refunds, incentives, fraud, and expected loss.”
-
-### 4:50–5:00 — Close
-
-“The focused wedge is a credit-aware catalogue, a native financed checkout, and a merchant affordability OS. The North Star is contribution-positive financed GMV from repeat users.”
-
-## 7. What Is Real Versus Simulated
-
-Real in the prototype:
-
-- Complete interactive navigation
-- Product search and category filtering
-- Product and plan selection
-- KFS / consent interaction
-- Checkout processing and success state
-- Repayment and limit state
-- Seller navigation, catalogue filters, and modal flows
-- Dynamic offer-funding simulator
-- Connected identifiers and commercial logic
-
-Simulated:
-
-- Underwriting and lender approval response
-- Real KYC / bureau / bank data
-- UPI payment, mandate, and loan-disbursal calls
-- Seller inventory API
-- Order fulfilment and refund webhooks
-- Forecast model and campaign experiment results
-- Settlements and cohort data
-
-The purpose is to test product comprehension, user trust, seller usefulness, and the operating model before committing to production integrations.
+```text
+Overview -> Affordability -> Catalogue onboarding -> Orders
+-> Settlements -> Analytics -> Channels & APIs -> test checkout -> test webhook
+```
